@@ -10,3 +10,7 @@
 - Redacción de la descripción del proyecto.
 - Revisión y actualización de la documentación del proyecto.
 - Decisión de utilizar Flutter para el desarrollo de la aplicación móvil.
+
+## 2026-01-03
+- Definición del modelo de datos del sistema TrackIt.
+- Identificación de entidades principales y sus relaciones.
