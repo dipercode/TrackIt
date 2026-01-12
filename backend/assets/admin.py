@@ -1,3 +1,6 @@
 from django.contrib import admin
+from .models import Ubicacion, Activo, Movimiento
 
-# Register your models here.
+admin.site.register(Ubicacion)
+admin.site.register(Activo)
+admin.site.register(Movimiento)
