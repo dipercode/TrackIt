@@ -18,13 +18,14 @@
 * Definición del modelo de datos del sistema TrackIt.
 * Identificación de entidades principales y sus relaciones.
 
+## 2026-01-09
 
+* Creación de la aplicación assets en el backend Django.
+* Registro de la app assets en la configuración del proyecto.
 
-\## 2026-01-09
+## 2026-01-09
 
-\- Creación de la aplicación assets en el backend Django.
-
-\- Registro de la app assets en la configuración del proyecto.
-
+* Corrección de error en el archivo de rutas de la app assets.
+* Verificación del funcionamiento de la API REST de activos.
 
 
