@@ -32,3 +32,6 @@
 * Ampliación de la API REST para incluir ubicaciones y movimientos.
 * Exposición de endpoints REST para todas las entidades principales del sistema.
 
+## 2026-01-09
+* Configuración de CORS para permitir el consumo de la API desde aplicación móvil.
+* Preparación del backend para su integración con Flutter.
