@@ -1,16 +1,30 @@
 # Bitácora de Desarrollo – TrackIt
 
 ## 2026-01-03
-- Creación del repositorio TrackIt en GitHub.
-- Primer commit con el archivo README.md.
-- Definición inicial del proyecto y su objetivo general.
+
+* Creación del repositorio TrackIt en GitHub.
+* Primer commit con el archivo README.md.
+* Definición inicial del proyecto y su objetivo general.
 
 ## 2026-01-03
-- Creación de la carpeta backend como base del desarrollo técnico.
-- Redacción de la descripción del proyecto.
-- Revisión y actualización de la documentación del proyecto.
-- Decisión de utilizar Flutter para el desarrollo de la aplicación móvil.
+
+* Creación de la carpeta backend como base del desarrollo técnico.
+* Redacción de la descripción del proyecto.
+* Revisión y actualización de la documentación del proyecto.
+* Decisión de utilizar Flutter para el desarrollo de la aplicación móvil.
 
 ## 2026-01-03
-- Definición del modelo de datos del sistema TrackIt.
-- Identificación de entidades principales y sus relaciones.
+
+* Definición del modelo de datos del sistema TrackIt.
+* Identificación de entidades principales y sus relaciones.
+
+
+
+\## 2026-01-09
+
+\- Creación de la aplicación assets en el backend Django.
+
+\- Registro de la app assets en la configuración del proyecto.
+
+
+
