@@ -1,0 +1,10 @@
+# Python
+__pycache__/
+*.pyc
+.env
+
+# Django
+db.sqlite3
+
+# Node
+node_modules/
