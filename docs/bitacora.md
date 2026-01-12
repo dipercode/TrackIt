@@ -28,4 +28,7 @@
 * Corrección de error en el archivo de rutas de la app assets.
 * Verificación del funcionamiento de la API REST de activos.
 
+## 2026-01-09
+* Ampliación de la API REST para incluir ubicaciones y movimientos.
+* Exposición de endpoints REST para todas las entidades principales del sistema.
 
