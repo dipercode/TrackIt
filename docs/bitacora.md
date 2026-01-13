@@ -40,3 +40,4 @@
 * Instalación y configuración de PostgreSQL como base de datos del proyecto.
 * Conexión del backend Django con PostgreSQL.
 * Ejecución de migraciones iniciales.
+* Verificación del funcionamiento mediante el panel de administración.
