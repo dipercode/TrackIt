@@ -38,12 +38,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
-    'assets',
-    'rest_framework',
-    'rest_framework.authtoken',
-    'corsheaders',
-
     'inventory', # app Trackit
+    'rest_framework', # Django REST FRAMEWORK
 ]
 
 MIDDLEWARE = [
