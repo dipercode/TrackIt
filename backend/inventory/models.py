@@ -2,12 +2,24 @@ from django.db import models
 from django.contrib.auth.models import User
 
 
-class Ubicacion(models.Model):
+class Estacion(models.Model):
     nombre = models.CharField(max_length=100)
     descripcion = models.TextField(blank=True)
 
     def __str__(self):
         return self.nombre
+
+
+class Ubicacion(models.Model):
+    nombre = models.CharField(max_length=100)
+    estacion = models.ForeignKey(
+        Estacion,
+        on_delete=models.CASCADE,
+        related_name="ubicaciones"
+    )
+
+    def __str__(self):
+        return f"{self.estacion.nombre} - {self.nombre}"
 
 
 class Activo(models.Model):
