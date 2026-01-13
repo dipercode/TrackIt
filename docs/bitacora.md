@@ -50,3 +50,5 @@
 * Preparación de la API REST para el intercambio de datos en formato JSON.
 * Desactivación temporal de la autenticación en la API REST para facilitar las pruebas
 * Verificación del acceso público a los endpoints.
+* Modificación de la DB para gestionar los activos entre las 3 estaciones de ITV.
+* Definir ubicaciones y activos distribuidos entre las 3 estaciones.
