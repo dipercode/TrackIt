@@ -35,3 +35,8 @@
 ## 2026-01-09
 * Configuración de CORS para permitir el consumo de la API desde aplicación móvil.
 * Preparación del backend para su integración con Flutter.
+
+## 2026-01-13
+* Instalación y configuración de PostgreSQL como base de datos del proyecto.
+* Conexión del backend Django con PostgreSQL.
+* Ejecución de migraciones iniciales.
