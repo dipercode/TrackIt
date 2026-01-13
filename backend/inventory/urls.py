@@ -1,9 +1,10 @@
 from rest_framework.routers import DefaultRouter
-from .views import ActivoViewSet, UbicacionViewSet, MovimientoViewSet
+from .views import EstacionViewSet, UbicacionViewSet, ActivoViewSet, MovimientoViewSet
 
 router = DefaultRouter()
-router.register(r'activos', ActivoViewSet)
+router.register(r'estaciones', EstacionViewSet)
 router.register(r'ubicaciones', UbicacionViewSet)
+router.register(r'activos', ActivoViewSet)
 router.register(r'movimientos', MovimientoViewSet)
 
 urlpatterns = router.urls

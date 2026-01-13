@@ -1,11 +1,16 @@
 from rest_framework import viewsets, permissions
-from .models import Activo, Ubicacion, Movimiento
+from .models import Estacion, Ubicacion, Activo, Movimiento
 from .serializers import (
-    ActivoSerializer,
+    EstacionSerializer,
     UbicacionSerializer,
-    MovimientoSerializer
+    ActivoSerializer,
+    MovimientoSerializer,
 )
 
+
+class EstacionViewSet(viewsets.ModelViewSet):
+    queryset = Estacion.objects.all()
+    serializer_class = EstacionSerializer
 
 class UbicacionViewSet(viewsets.ModelViewSet):
     queryset = Ubicacion.objects.all()

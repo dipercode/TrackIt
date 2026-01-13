@@ -1,5 +1,11 @@
 from rest_framework import serializers
-from .models import Activo, Ubicacion, Movimiento
+from .models import Estacion, Ubicacion, Activo, Movimiento
+
+
+class EstacionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Estacion
+        fields = "__all__"
 
 
 class UbicacionSerializer(serializers.ModelSerializer):
