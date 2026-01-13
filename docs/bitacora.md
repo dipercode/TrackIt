@@ -48,3 +48,5 @@
 * Habilitación de autenticación por token.
 * Creación de los serializers para los modelos principales del sistema.
 * Preparación de la API REST para el intercambio de datos en formato JSON.
+* Desactivación temporal de la autenticación en la API REST para facilitar las pruebas
+* Verificación del acceso público a los endpoints.
