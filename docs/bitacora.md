@@ -29,15 +29,20 @@
 * Verificación del funcionamiento de la API REST de activos.
 
 ## 2026-01-09
+
 * Ampliación de la API REST para incluir ubicaciones y movimientos.
 * Exposición de endpoints REST para todas las entidades principales del sistema.
 
 ## 2026-01-09
+
 * Configuración de CORS para permitir el consumo de la API desde aplicación móvil.
 * Preparación del backend para su integración con Flutter.
 
 ## 2026-01-13
+
 * Instalación y configuración de PostgreSQL como base de datos del proyecto.
 * Conexión del backend Django con PostgreSQL.
 * Ejecución de migraciones iniciales.
 * Verificación del funcionamiento mediante el panel de administración.
+* Configuración inicial de la API REST con Django REST Framework.
+* Habilitación de autenticación por token.
