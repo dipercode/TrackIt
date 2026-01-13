@@ -46,3 +46,5 @@
 * Verificación del funcionamiento mediante el panel de administración.
 * Configuración inicial de la API REST con Django REST Framework.
 * Habilitación de autenticación por token.
+* Creación de los serializers para los modelos principales del sistema.
+* Preparación de la API REST para el intercambio de datos en formato JSON.
