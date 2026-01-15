@@ -23,8 +23,6 @@ class ActivoSerializer(serializers.ModelSerializer):
 
 
 class MovimientoSerializer(serializers.ModelSerializer):
-    activo = ActivoSerializer(read_only=True)
-
     class Meta:
         model = Movimiento
         fields = '__all__'

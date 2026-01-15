@@ -42,15 +42,23 @@ class Activo(models.Model):
 
 
 class Movimiento(models.Model):
-    TIPOS = [
-        ('CHECKOUT', 'Salida'),
-        ('CHECKIN', 'Devolución'),
+    TIPO_CHOICES = [
+        ('TRASLADO', 'Traslado'),
+        ('MANTENIMIENTO', 'Mantenimiento'),
+        ('ALTA', 'Alta'),
+        ('BAJA', 'Baja'),
     ]
 
-    tipo = models.CharField(max_length=10, choices=TIPOS)
-    fecha_hora = models.DateTimeField(auto_now_add=True)
     activo = models.ForeignKey(Activo, on_delete=models.CASCADE)
-    usuario = models.ForeignKey(User, on_delete=models.CASCADE)
+    usuario = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True
+    )
+    tipo = models.CharField(max_length=20, choices=TIPO_CHOICES)
+    fecha = models.DateTimeField(auto_now_add=True)
+    observaciones = models.TextField(blank=True)
 
     def __str__(self):
         return f"{self.tipo} - {self.activo.nombre}"
