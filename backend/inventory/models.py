@@ -80,5 +80,15 @@ class Movimiento(models.Model):
 
     observaciones = models.TextField(blank=True)
 
+    def save(self, *args, **kwargs):
+
+        # Guardar el movimiento primero
+        super().save(*args, **kwargs)
+
+        # Si hay destino, actualizar ubicación del activo
+        if self.ubicacion_destino:
+            self.activo.ubicacion = self.ubicacion_destino
+            self.activo.save()
+
     def __str__(self):
         return f"{self.tipo} - {self.activo.nombre}"
