@@ -50,14 +50,34 @@ class Movimiento(models.Model):
     ]
 
     activo = models.ForeignKey(Activo, on_delete=models.CASCADE)
+
     usuario = models.ForeignKey(
         User,
         on_delete=models.SET_NULL,
         null=True,
         blank=True
     )
+
+    ubicacion_origen = models.ForeignKey(
+        Ubicacion,
+        related_name="movimientos_origen",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True
+    )
+
+    ubicacion_destino = models.ForeignKey(
+        Ubicacion,
+        related_name="movimientos_destino",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True
+    )
+
     tipo = models.CharField(max_length=20, choices=TIPO_CHOICES)
+
     fecha = models.DateTimeField(auto_now_add=True)
+
     observaciones = models.TextField(blank=True)
 
     def __str__(self):
