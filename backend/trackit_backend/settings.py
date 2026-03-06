@@ -108,13 +108,11 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 
+#Añadir autenticación al presentar la APP
 REST_FRAMEWORK = {
-    'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework.authentication.TokenAuthentication',
-    ],
-    'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.IsAuthenticated',
-    ],
+    'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.AllowAny',
+    ),
 }
 
 CORS_ALLOW_ALL_ORIGINS = True
