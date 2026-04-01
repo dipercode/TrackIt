@@ -52,3 +52,18 @@
 * Verificación del acceso público a los endpoints.
 * Modificación de la DB para gestionar los activos entre las 3 estaciones de ITV.
 * Definir ubicaciones y activos distribuidos entre las 3 estaciones.
+
+## 2026-04-01
+
+* Implementación de la navegación entre pantallas en Flutter.
+* Creación de la vista de Ubicaciones filtrada por Estación.
+* Conexión del ApiService con el endpoint de ubicaciones.
+
+## 2026-04-01
+
+* [App Móvil] Inicio del desarrollo de la interfaz en Flutter.
+* [App Móvil] Implementación funcional de la navegación entre Estaciones y Ubicaciones internas.
+* [App Móvil] Refactorización del ApiService para centralizar las llamadas al backend (Django).
+* [App Móvil] Ajuste de UI: Se mejoró el diseño de las listas con ListView.separated y se aplicó tema de colores.
+* [Backend] Ajuste en el ViewSet de Ubicaciones para permitir filtrado por ID de estación.
+* [Backend] Verificado el filtrado de ubicaciones mediante django-filter.

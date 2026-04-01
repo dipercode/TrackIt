@@ -1,6 +1,7 @@
+
 import 'package:flutter/material.dart';
 import '../services/api_service.dart';
-import 'ubicaciones_screen.dart'; // Importante para que reconozca la pantalla de destino
+import 'ubicaciones_screen.dart';
 
 class EstacionesScreen extends StatefulWidget {
   const EstacionesScreen({super.key});
@@ -24,6 +25,8 @@ class _EstacionesScreenState extends State<EstacionesScreen> {
       appBar: AppBar(
         title: const Text("TrackIt - Estaciones"),
         elevation: 2,
+        backgroundColor: Colors.blueAccent,
+        foregroundColor: Colors.white,
       ),
       body: FutureBuilder<List<dynamic>>(
         future: estaciones,
@@ -42,9 +45,9 @@ class _EstacionesScreenState extends State<EstacionesScreen> {
 
           final listaEstaciones = snapshot.data!;
 
-          // --- LISTVIEW  ---
-          return ListView.builder(
+          return ListView.separated(
             itemCount: listaEstaciones.length,
+            separatorBuilder: (context, index) => const Divider(height: 1),
             itemBuilder: (context, index) {
               final estacion = listaEstaciones[index];
 
@@ -60,7 +63,9 @@ class _EstacionesScreenState extends State<EstacionesScreen> {
                 subtitle: Text(estacion["direccion"] ?? "Sin dirección"),
                 trailing: const Icon(Icons.arrow_forward_ios, size: 16),
                 onTap: () {
-                  // Navegación a la pantalla de ubicaciones filtrada por el ID de la estación
+                  // 💡 Debug: Esto saldrá en la terminal de VS Code
+                  print("Navegando a ubicaciones de: ${estacion['nombre']}");
+                  
                   Navigator.push(
                     context,
                     MaterialPageRoute(
@@ -74,7 +79,6 @@ class _EstacionesScreenState extends State<EstacionesScreen> {
               );
             },
           );
-          // ------------------------------------------
         },
       ),
     );
