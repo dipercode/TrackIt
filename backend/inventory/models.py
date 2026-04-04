@@ -24,9 +24,12 @@ class Ubicacion(models.Model):
 
 class Activo(models.Model):
     ESTADOS = [
+        ('OPERATIVO', 'Operativo'),
         ('DISPONIBLE', 'Disponible'),
-        ('ASIGNADO', 'Asignado'),
-        ('MANTENIMIENTO', 'Mantenimiento'),
+        ('AVERIADO', 'Averiado'),
+        ('REPARACIÓN', 'Reparación'),
+        ('CALIBRACIÓN', 'Calibración'),
+        ('BAJA', 'Baja'),
     ]
 
     nombre = models.CharField(max_length=100)
@@ -43,9 +46,11 @@ class Activo(models.Model):
 
 class Movimiento(models.Model):
     TIPO_CHOICES = [
-        ('TRASLADO', 'Traslado'),
-        ('MANTENIMIENTO', 'Mantenimiento'),
-        ('ALTA', 'Alta'),
+        ('OPERATIVO', 'Operativo'),
+        ('DISPONIBLE', 'Disponible'),
+        ('AVERIADO', 'Averiado'),
+        ('REPARACIÓN', 'Reparación'),
+        ('CALIBRACIÓN', 'Calibración'),
         ('BAJA', 'Baja'),
     ]
 
