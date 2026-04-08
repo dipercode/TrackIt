@@ -1,7 +1,7 @@
-
 import 'package:flutter/material.dart';
 import '../services/api_service.dart';
 import 'ubicaciones_screen.dart';
+import 'qr_scanner_screen.dart'; // 👈 IMPORTANTE: Importar la pantalla del escáner
 
 class EstacionesScreen extends StatefulWidget {
   const EstacionesScreen({super.key});
@@ -27,6 +27,20 @@ class _EstacionesScreenState extends State<EstacionesScreen> {
         elevation: 2,
         backgroundColor: Colors.blueAccent,
         foregroundColor: Colors.white,
+        // 👈 AÑADIMOS EL BOTÓN DE ESCANEO AQUÍ
+        actions: [
+          IconButton(
+            tooltip: "Escanear Activo",
+            icon: const Icon(Icons.qr_code_scanner),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const QrScannerScreen()),
+              );
+            },
+          ),
+          const SizedBox(width: 8),
+        ],
       ),
       body: FutureBuilder<List<dynamic>>(
         future: estaciones,
@@ -63,8 +77,7 @@ class _EstacionesScreenState extends State<EstacionesScreen> {
                 subtitle: Text(estacion["direccion"] ?? "Sin dirección"),
                 trailing: const Icon(Icons.arrow_forward_ios, size: 16),
                 onTap: () {
-                  // 💡 Debug: Esto saldrá en la terminal de VS Code
-                  print("Navegando a ubicaciones de: ${estacion['nombre']}");
+                  debugPrint("Navegando a ubicaciones de: ${estacion['nombre']}");
                   
                   Navigator.push(
                     context,

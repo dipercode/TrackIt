@@ -1,5 +1,8 @@
+
 import 'package:flutter/material.dart';
 import '../services/api_service.dart';
+import 'activo_detalle_screen.dart';
+import 'qr_scanner_screen.dart';
 
 class ActivosScreen extends StatelessWidget {
   final int ubicacionId;
@@ -7,7 +10,6 @@ class ActivosScreen extends StatelessWidget {
 
   const ActivosScreen({super.key, required this.ubicacionId, required this.ubicacionNombre});
 
-  // 🎨 Función auxiliar para determinar el color según el estado
   Color _getEstadoColor(String? estado) {
     if (estado == null) return Colors.grey;
     
@@ -15,6 +17,7 @@ class ActivosScreen extends StatelessWidget {
       case 'operativo':
         return Colors.green;
       case 'disponible':
+      case 'traslado':
         return Colors.orange;
       case 'averiado':
       case 'reparación':
@@ -33,6 +36,20 @@ class ActivosScreen extends StatelessWidget {
         title: Text("Activos: $ubicacionNombre"),
         backgroundColor: Colors.orangeAccent,
         foregroundColor: Colors.white,
+        // Sección de acciones en el AppBar
+        actions: [
+          IconButton(
+            tooltip: "Escanear QR",
+            icon: const Icon(Icons.qr_code_scanner),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const QrScannerScreen()),
+              );
+            },
+          ),
+          const SizedBox(width: 8),
+        ],
       ),
       body: FutureBuilder<List<dynamic>>(
         future: ApiService.getActivos(ubicacionId),
@@ -59,7 +76,6 @@ class ActivosScreen extends StatelessWidget {
                 margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 elevation: 3,
                 child: ListTile(
-                  // 🟢🟠🔴 El icono cambia de color según el estado
                   leading: Icon(Icons.inventory_2, color: colorEstado), 
                   title: Text(
                     activo["nombre"], 
@@ -81,7 +97,15 @@ class ActivosScreen extends StatelessWidget {
                   ),
                   trailing: const Icon(Icons.info_outline),
                   onTap: () {
-                    print("Ver detalle del activo ID: ${activo['id']}");
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => ActivoDetalleScreen(
+                          activoId: activo['id'],
+                          activoNombre: activo['nombre'],
+                        ),
+                      ),
+                    );
                   },
                 ),
               );

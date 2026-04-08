@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import '../services/api_service.dart';
 import 'activos_screen.dart';
+import 'qr_scanner_screen.dart';
 
 class UbicacionesScreen extends StatelessWidget {
   final int estacionId;
@@ -20,9 +21,21 @@ class UbicacionesScreen extends StatelessWidget {
         title: Text("Ubicaciones: $estacionNombre"),
         backgroundColor: Colors.blueAccent,
         foregroundColor: Colors.white,
+        actions: [
+          IconButton(
+            tooltip: "Escanear QR de Activo",
+            icon: const Icon(Icons.qr_code_scanner),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const QrScannerScreen()),
+              );
+            },
+          ),
+          const SizedBox(width: 8),
+        ],
       ),
       body: FutureBuilder<List<dynamic>>(
-        // 🚀 USAMOS EL MÉTODO QUE YA ESTÁ EN EL API_SERVICE
         future: ApiService.getUbicaciones(estacionId), 
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
@@ -45,7 +58,7 @@ class UbicacionesScreen extends StatelessWidget {
 
           return ListView.separated(
             itemCount: ubicaciones.length,
-            separatorBuilder: (context, index) => const Divider(), // Línea divisoria más limpia
+            separatorBuilder: (context, index) => const Divider(),
             itemBuilder: (context, index) {
               final ubi = ubicaciones[index];
               return ListTile(
@@ -57,8 +70,7 @@ class UbicacionesScreen extends StatelessWidget {
                 subtitle: Text("ID de ubicación: ${ubi['id']}"),
                 trailing: const Icon(Icons.arrow_forward_ios, size: 14),
                 onTap: () {
-                  // Muestra los ACTIVOS de esta ubicación
-                  print("Seleccionada Ubicación ID: ${ubi['id']}");
+                  debugPrint("Seleccionada Ubicación ID: ${ubi['id']}");
                   Navigator.push(
                     context,
                     MaterialPageRoute(

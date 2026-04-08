@@ -23,6 +23,17 @@ class ActivoSerializer(serializers.ModelSerializer):
 
 
 class MovimientoSerializer(serializers.ModelSerializer):
+    # Traemos el nombre de las ubicaciones (relacionadas en el modelo Movimiento)
+    ubicacion_origen_nombre = serializers.ReadOnlyField(source='ubicacion_origen.nombre')
+    ubicacion_destino_nombre = serializers.ReadOnlyField(source='ubicacion_destino.nombre')
+    # Nombre del usuario que hizo el movimiento
+    usuario_nombre = serializers.ReadOnlyField(source='usuario.username')
+
     class Meta:
         model = Movimiento
-        fields = '__all__'
+        fields = [
+            'id', 'activo', 'fecha', 'usuario', 'usuario_nombre',
+            'ubicacion_origen', 'ubicacion_origen_nombre', 
+            'ubicacion_destino', 'ubicacion_destino_nombre',
+            'tipo', 'motivo', 'observaciones'
+        ]
