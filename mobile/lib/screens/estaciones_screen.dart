@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import '../services/api_service.dart';
 import 'ubicaciones_screen.dart';
-import 'qr_scanner_screen.dart'; // 👈 IMPORTANTE: Importar la pantalla del escáner
+import 'qr_scanner_screen.dart';
+ import 'activo_search_delegate.dart';
 
 class EstacionesScreen extends StatefulWidget {
   const EstacionesScreen({super.key});
@@ -27,8 +28,19 @@ class _EstacionesScreenState extends State<EstacionesScreen> {
         elevation: 2,
         backgroundColor: Colors.blueAccent,
         foregroundColor: Colors.white,
-        // 👈 AÑADIMOS EL BOTÓN DE ESCANEO AQUÍ
+        // Botones de la AppBar
         actions: [
+          // Botón lupa para buscar activos
+          IconButton(
+          icon: const Icon(Icons.search),
+          onPressed: () {
+            showSearch(
+              context: context,
+              delegate: ActivoSearchDelegate(),
+            );
+          },
+        ),
+          // Botón para escanear QR
           IconButton(
             tooltip: "Escanear Activo",
             icon: const Icon(Icons.qr_code_scanner),

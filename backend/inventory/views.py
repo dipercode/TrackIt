@@ -1,4 +1,4 @@
-from rest_framework import viewsets, permissions
+from rest_framework import viewsets, permissions, filters
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
@@ -32,8 +32,11 @@ class ActivoViewSet(viewsets.ModelViewSet):
     serializer_class = ActivoSerializer
     permission_classes = [permissions.AllowAny]
 
-    filter_backends = [DjangoFilterBackend]
-    filterset_fields = ['ubicacion']
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter]
+    # Permite filtrar por estado y ubicación, y buscar por nombre o descripción
+    filterset_fields = ['estado','ubicacion', 'ubicacion__estacion']
+    # Permite búsqueda parcial por nombre o descripción del activo
+    search_fields = ['nombre', 'descripcion']
 
     @action(detail=True, methods=['get'])
     def movimientos(self, request, pk=None):

@@ -29,15 +29,37 @@ class ApiService {
     }
   }
 
-  static Future<List<dynamic>> getActivos(int ubicacionId) async {
-    final response = await http.get(
-      Uri.parse("$baseUrl/activos/?ubicacion=$ubicacionId")
-    );
+  static Future<List<dynamic>> getActivos({
+    int? ubicacionId, 
+    int? estacionId, 
+    String? estado
+  }) async {
+    String url = '$baseUrl/activos/?';
 
-    if (response.statusCode == 200) {
-      return json.decode(response.body);
-    } else {
-      throw Exception("Error al cargar los activos");
+    // Si queremos filtrar por una ubicación específica
+    if (ubicacionId != null) {
+      url += 'ubicacion=$ubicacionId&';
+    }
+
+    // Si queremos filtrar por toda la estación
+    if (estacionId != null) {
+      url += 'ubicacion__estacion=$estacionId&';
+    }
+
+    // Si seleccionamos un estado (Averiado, Operativo, etc)
+    if (estado != null) {
+      url += 'estado=$estado';
+    }
+
+    try {
+      final response = await http.get(Uri.parse(url));
+      if (response.statusCode == 200) {
+        return json.decode(response.body);
+      } else {
+        throw Exception('Error al cargar activos');
+      }
+    } catch (e) {
+      throw Exception('Error de conexión: $e');
     }
   }
 
@@ -84,6 +106,23 @@ class ApiService {
       return json.decode(response.body);
     } else {
       throw Exception("Error al cargar todas las ubicaciones");
+    }
+  }
+
+  static Future<List<dynamic>> buscarActivos(String query) async {
+  // 1. Si la query está vacía, no molestamos al servidor y devolvemos lista vacía
+    if (query.trim().isEmpty) {
+      return [];
+    }
+    
+    final response = await http.get(
+      Uri.parse('$baseUrl/activos/?search=${Uri.encodeComponent(query)}'),
+    );
+
+    if (response.statusCode == 200) {
+      return json.decode(response.body);
+    } else {
+      throw Exception('Error al buscar activos');
     }
   }
 

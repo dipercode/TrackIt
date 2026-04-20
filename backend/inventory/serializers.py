@@ -15,11 +15,18 @@ class UbicacionSerializer(serializers.ModelSerializer):
 
 
 class ActivoSerializer(serializers.ModelSerializer):
-    ubicacion = UbicacionSerializer(read_only=True)
+    ubicacion_nombre = serializers.ReadOnlyField(source='ubicacion.nombre')
 
     class Meta:
         model = Activo
-        fields = '__all__'
+        fields = [
+            'id', 
+            'nombre', 
+            'descripcion', 
+            'estado', 
+            'ubicacion', 
+            'ubicacion_nombre',
+        ]
 
 
 class MovimientoSerializer(serializers.ModelSerializer):

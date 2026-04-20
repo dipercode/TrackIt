@@ -67,3 +67,12 @@
 * [App Móvil] Ajuste de UI: Se mejoró el diseño de las listas con ListView.separated y se aplicó tema de colores.
 * [Backend] Ajuste en el ViewSet de Ubicaciones para permitir filtrado por ID de estación.
 * [Backend] Verificado el filtrado de ubicaciones mediante django-filter.
+
+## 2026-04-20
+
+* [Backend] Optimización del backend (activación de SearchFilter) para soportar búsquedas parciales.
+* [App Móvil] 
+    - Implementación de búsqueda global (SearchDelegate).
+    - Sistema de filtros por estados en las pantallas de Ubicaciones y Activos (ChoiceChips).
+    - Vista glogal de estación: se ajustó el sistema para permitir ver todos los activos de una estación completa, filtrados por estado, sin necesidad de entrar ubicación por ubicación.
+    - Mejora de serialización: se añadió el campo 'ubicacion_nombre' en el API para mejorar la trazabilidad visual en las listas globales.
