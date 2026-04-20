@@ -20,7 +20,7 @@ la trazabilidad.
 - Backend: Django + Django Rest Framework
 - Base de datos: PostgreSQL
 - Dashboard Web: React
-- Aplicación móvil: React Native
+- Aplicación móvil: Flutter
 - Identificación de activos: Códigos QR
 
 ## Estado del proyecto
