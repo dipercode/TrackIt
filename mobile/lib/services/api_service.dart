@@ -1,6 +1,9 @@
 
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:http_parser/http_parser.dart';
+import 'dart:io';
+
 
 class ApiService {
   static const String baseUrl = "http://10.0.2.2:8000/api";
@@ -34,29 +37,22 @@ class ApiService {
     int? estacionId, 
     String? estado
   }) async {
-    String url = '$baseUrl/activos/?';
+    // Creamos un mapa con los parámetros que realmente existen
+    Map<String, String> params = {};
 
-    // Si queremos filtrar por una ubicación específica
-    if (ubicacionId != null) {
-      url += 'ubicacion=$ubicacionId&';
-    }
+    if (ubicacionId != null) params['ubicacion'] = ubicacionId.toString();
+    if (estacionId != null) params['ubicacion__estacion'] = estacionId.toString();
+    if (estado != null && estado != "TODOS") params['estado'] = estado;
 
-    // Si queremos filtrar por toda la estación
-    if (estacionId != null) {
-      url += 'ubicacion__estacion=$estacionId&';
-    }
-
-    // Si seleccionamos un estado (Averiado, Operativo, etc)
-    if (estado != null) {
-      url += 'estado=$estado';
-    }
+    // Usamos Uri para construir la URL de forma profesional (maneja los ? y & por nosotros)
+    final uri = Uri.parse("$baseUrl/activos/").replace(queryParameters: params);
 
     try {
-      final response = await http.get(Uri.parse(url));
+      final response = await http.get(uri);
       if (response.statusCode == 200) {
         return json.decode(response.body);
       } else {
-        throw Exception('Error al cargar activos');
+        throw Exception('Error al cargar activos: ${response.statusCode}');
       }
     } catch (e) {
       throw Exception('Error de conexión: $e');
@@ -125,5 +121,52 @@ class ApiService {
       throw Exception('Error al buscar activos');
     }
   }
+
+
+  static Future<bool> actualizarEstadoActivo(int activoId, String nuevoEstado) async {
+    final response = await http.patch(
+      Uri.parse("$baseUrl/activos/$activoId/"),
+      headers: {"Content-Type": "application/json"},
+      body: json.encode({"estado": nuevoEstado}),
+    );
+
+    return response.statusCode == 200;
+  }
+
+  static Future<bool> crearActivo({
+    required String nombre,
+    required String descripcion,
+    required int ubicacionId,
+    required String estado,
+    File? imagen,
+    String? fechaProximaVerificacion,
+  }) async {
+    var request = http.MultipartRequest(
+      'POST',
+      Uri.parse("$baseUrl/activos/"),
+    );
+
+    // Campos de texto
+    request.fields['nombre'] = nombre;
+    request.fields['descripcion'] = descripcion;
+    request.fields['ubicacion'] = ubicacionId.toString();
+    request.fields['estado'] = estado;
+    if (fechaProximaVerificacion != null) {
+      request.fields['fecha_proxima_verificacion'] = fechaProximaVerificacion;
+    }
+
+    // Adjuntar imagen si existe
+    if (imagen != null) {
+      request.files.add(await http.MultipartFile.fromPath(
+        'imagen',
+        imagen.path,
+        contentType: MediaType('image', 'jpeg'),
+      ));
+    }
+
+    var response = await request.send();
+    return response.statusCode == 201;
+  }
+
 
 }

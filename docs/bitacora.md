@@ -76,3 +76,10 @@
     - Sistema de filtros por estados en las pantallas de Ubicaciones y Activos (ChoiceChips).
     - Vista glogal de estación: se ajustó el sistema para permitir ver todos los activos de una estación completa, filtrados por estado, sin necesidad de entrar ubicación por ubicación.
     - Mejora de serialización: se añadió el campo 'ubicacion_nombre' en el API para mejorar la trazabilidad visual en las listas globales.
+
+## 2026-04-23
+
+* [Backend] Se refactorizó getActivos utilizando la clase Uri y queryParameters. Esto eliminó errores de sintaxis en la URL (como el & huérfano) que causaban que el backend ignorara los filtros y devolviera la lista completa.
+* [App Móvil] 
+    - Cambio de las UI y paleta de colores.
+    - Implementación de una lupa para buscar un activo por nombre.

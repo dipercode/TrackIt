@@ -36,8 +36,13 @@ class Activo(models.Model):
     nombre = models.CharField(max_length=100)
     descripcion = models.TextField(blank=True)
     codigo_qr = models.CharField(max_length=255, unique=True)
+    imagen = models.ImageField(upload_to='activos/fotos/', null=True, blank=True)
+    certificado_pdf = models.FileField(upload_to='activos/certificados/', null=True, blank=True)
+    fecha_calibracion = models.DateField(null=True, blank=True)
+    fecha_proxima_verificacion = models.DateField(null=True, blank=True)
+    requiere_calibracion = models.BooleanField(default=False)
     
-    # 🎨 Este campo es el que controla el color del icono en la App
+    # Campo es el que controla el color del icono en la App
     estado = models.CharField(
         max_length=20, 
         choices=ESTADOS, 
@@ -48,7 +53,7 @@ class Activo(models.Model):
         Ubicacion, 
         on_delete=models.SET_NULL, 
         null=True,
-        related_name="activos" # 👈 Útil para hacer consultas inversas
+        related_name="activos" # Para hacer consultas inversas
     )
     
     fecha_ultimo_mantenimiento = models.DateField(null=True, blank=True)

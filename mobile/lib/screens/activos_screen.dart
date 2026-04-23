@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../services/api_service.dart';
 import 'activo_detalle_screen.dart';
 import 'qr_scanner_screen.dart';
+import 'activo_form_screen.dart';
 
 class ActivosScreen extends StatefulWidget {
   final int ubicacionId;
@@ -14,38 +15,34 @@ class ActivosScreen extends StatefulWidget {
 }
 
 class _ActivosScreenState extends State<ActivosScreen> {
-  // 1. Variable para controlar el estado seleccionado
   String estadoSeleccionado = "TODOS";
-
-  // 2. Lista de estados para los Chips
   final List<String> categorias = ["TODOS", "OPERATIVO", "DISPONIBLE", "REPARACIÓN", "AVERIADO", "TRASLADO", "CALIBRACIÓN", "BAJA"];
 
+  // Función para refrescar la lista
+  void _refreshData() {
+    setState(() {});
+  }
+
   Color _getEstadoColor(String? estado) {
-    if (estado == null) return Colors.grey;
+    if (estado == null) return const Color(0xFF94A3B8);
     switch (estado.toLowerCase()) {
-      case 'operativo':
-        return Colors.green;
+      case 'operativo': return const Color(0xFF4ADE80);
       case 'disponible':
-      case 'traslado':
-        return Colors.orange;
+      case 'traslado': return const Color(0xFFFBBF24);
       case 'averiado':
-      case 'averia':
       case 'reparación':
-      case 'calibración':
-      case 'baja':
-        return Colors.red;
-      default:
-        return Colors.blueGrey;
+      case 'baja': return const Color(0xFFFB7185);
+      default: return const Color(0xFF38BDF8);
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final accentColor = Theme.of(context).colorScheme.primary;
+
     return Scaffold(
       appBar: AppBar(
-        title: Text("Activos: ${widget.ubicacionNombre}"),
-        backgroundColor: Colors.orangeAccent,
-        foregroundColor: Colors.white,
+        title: Text(widget.ubicacionNombre.toUpperCase()),
         actions: [
           IconButton(
             tooltip: "Escanear QR",
@@ -57,19 +54,54 @@ class _ActivosScreenState extends State<ActivosScreen> {
               );
             },
           ),
+          // MENÚ DE ACCIONES REPARADO
+          PopupMenuButton<String>(
+            icon: const Icon(Icons.more_vert),
+            color: const Color(0xFF1E293B),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+            onSelected: (value) {
+              if (value == 'refresh') {
+                _refreshData();
+              } else if (value == 'add') {
+                _irAFomulario();
+              }
+            },
+            itemBuilder: (context) => [
+              PopupMenuItem(
+                value: 'refresh',
+                child: Row(
+                  children: [
+                    Icon(Icons.refresh, size: 18, color: accentColor),
+                    const SizedBox(width: 12),
+                    const Text("Actualizar Lista", style: TextStyle(color: Colors.white, fontSize: 14)),
+                  ],
+                ),
+              ),
+              const PopupMenuItem(
+                value: 'add',
+                child: Row(
+                  children: [
+                    Icon(Icons.add_box_outlined, size: 18, color: Colors.white54),
+                    SizedBox(width: 12),
+                    Text("Nuevo Activo", style: TextStyle(color: Colors.white, fontSize: 14)),
+                  ],
+                ),
+              ),
+            ],
+          ),
           const SizedBox(width: 8),
         ],
       ),
       body: Column(
         children: [
-          // 3. BARRA DE FILTROS (Chips)
+          // BARRA DE FILTROS
           Container(
-            height: 60,
-            padding: const EdgeInsets.symmetric(vertical: 10),
+            height: 50,
+            margin: const EdgeInsets.symmetric(vertical: 10),
             child: ListView.builder(
               scrollDirection: Axis.horizontal,
               itemCount: categorias.length,
-              padding: const EdgeInsets.symmetric(horizontal: 10),
+              padding: const EdgeInsets.symmetric(horizontal: 16),
               itemBuilder: (context, index) {
                 final cat = categorias[index];
                 final isSelected = estadoSeleccionado == cat;
@@ -78,28 +110,25 @@ class _ActivosScreenState extends State<ActivosScreen> {
                   child: ChoiceChip(
                     label: Text(cat),
                     selected: isSelected,
-                    selectedColor: Colors.orangeAccent,
+                    onSelected: (selected) => setState(() => estadoSeleccionado = cat),
+                    selectedColor: accentColor,
+                    backgroundColor: const Color(0xFF1E293B),
+                    showCheckmark: false,
                     labelStyle: TextStyle(
-                      color: isSelected ? Colors.white : Colors.black,
-                      fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                      color: isSelected ? Colors.black : Colors.white70,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 12
                     ),
-                    onSelected: (selected) {
-                      if (selected) {
-                        setState(() {
-                          estadoSeleccionado = cat;
-                        });
-                      }
-                    },
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12), side: BorderSide.none),
                   ),
                 );
               },
             ),
           ),
           
-          // 4. LISTADO DE ACTIVOS (Dentro de un Expanded)
+          // LISTADO DE ACTIVOS
           Expanded(
             child: FutureBuilder<List<dynamic>>(
-              // Pasamos el filtro al ApiService
               future: ApiService.getActivos(
                 ubicacionId: widget.ubicacionId,
                 estado: estadoSeleccionado == "TODOS" ? null : estadoSeleccionado,
@@ -109,46 +138,49 @@ class _ActivosScreenState extends State<ActivosScreen> {
                   return const Center(child: CircularProgressIndicator());
                 }
                 if (snapshot.hasError) {
-                  return Center(child: Text("Error: ${snapshot.error}"));
+                  return Center(child: Text("Error: ${snapshot.error}", style: const TextStyle(color: Colors.white30)));
                 }
                 final activos = snapshot.data ?? [];
                 if (activos.isEmpty) {
                   return const Center(
-                    child: Text("No hay activos con este estado en esta ubicación"),
+                    child: Text("NO HAY REGISTROS", style: TextStyle(color: Colors.white30, letterSpacing: 2)),
                   );
                 }
 
                 return ListView.builder(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
                   itemCount: activos.length,
                   itemBuilder: (context, index) {
                     final activo = activos[index];
                     final String estado = activo['estado'] ?? 'Sin asignar';
                     final Color colorEstado = _getEstadoColor(estado);
 
-                    return Card(
-                      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                      elevation: 3,
+                    return Container(
+                      margin: const EdgeInsets.only(bottom: 12),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF1E293B),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: Colors.white.withValues(alpha:0.05)),
+                      ),
                       child: ListTile(
-                        leading: Icon(Icons.inventory_2, color: colorEstado),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                        leading: Container(
+                          width: 4,
+                          height: 30,
+                          decoration: BoxDecoration(
+                            color: colorEstado,
+                            borderRadius: BorderRadius.circular(2),
+                          ),
+                        ),
                         title: Text(
                           activo["nombre"],
-                          style: const TextStyle(fontWeight: FontWeight.bold),
+                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                         ),
-                        subtitle: Row(
-                          children: [
-                            Container(
-                              width: 10,
-                              height: 10,
-                              decoration: BoxDecoration(
-                                color: colorEstado,
-                                shape: BoxShape.circle,
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            Text("Estado: $estado"),
-                          ],
+                        subtitle: Text(
+                          estado.toUpperCase(),
+                          style: TextStyle(color: colorEstado, fontSize: 10, fontWeight: FontWeight.w900, letterSpacing: 1),
                         ),
-                        trailing: const Icon(Icons.info_outline),
+                        trailing: Icon(Icons.chevron_right, color: Colors.white.withValues(alpha:0.2)),
                         onTap: () {
                           Navigator.push(
                             context,
@@ -158,7 +190,7 @@ class _ActivosScreenState extends State<ActivosScreen> {
                                 activoNombre: activo['nombre'],
                               ),
                             ),
-                          );
+                          ).then((_) => _refreshData());
                         },
                       ),
                     );
@@ -169,6 +201,25 @@ class _ActivosScreenState extends State<ActivosScreen> {
           ),
         ],
       ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: _irAFomulario,
+        label: const Text("AÑADIR ACTIVO", style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1)),
+        icon: const Icon(Icons.add_circle_outline),
+      ),
     );
+  }
+
+  // Función privada para navegar al formulario y refrescar al volver
+  Future<void> _irAFomulario() async {
+    final bool? result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ActivoFormScreen(
+          ubicacionId: widget.ubicacionId,
+          ubicacionNombre: widget.ubicacionNombre,
+        ),
+      ),
+    );
+    if (result == true && mounted) _refreshData();
   }
 }
