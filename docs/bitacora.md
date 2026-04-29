@@ -83,3 +83,10 @@
 * [App Móvil] 
     - Cambio de las UI y paleta de colores.
     - Implementación de una lupa para buscar un activo por nombre.
+
+## 2026-04-29
+
+* [Backend] Implementación de authtoken para login seguro.
+* [App Móvil]
+    - Implementación de lógica de login, guardando el token mediante shared_preferences y método de limpieza de sesión (logout).
+    - UX/UI: modificación de main.dart para arranque condicional (login vs home). Añadido botón de cierre de sesión con diálogo de confirmación en pantalla principal.

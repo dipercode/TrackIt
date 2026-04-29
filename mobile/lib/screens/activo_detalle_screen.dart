@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../services/api_service.dart';
+import 'activo_form_screen.dart';
 
 class ActivoDetalleScreen extends StatefulWidget {
   final int activoId;
@@ -12,145 +13,291 @@ class ActivoDetalleScreen extends StatefulWidget {
 }
 
 class _ActivoDetalleScreenState extends State<ActivoDetalleScreen> {
-  
-  void _refreshData() => setState(() {});
+  int _refreshKey = 0;
+
+  void _refreshData() {
+    setState(() {
+      _refreshKey++;
+    });
+  }
 
   Color _getEstadoColor(String? estado) {
     if (estado == null) return const Color(0xFF94A3B8);
     switch (estado.toUpperCase()) {
       case 'OPERATIVO': return const Color(0xFF4ADE80);
-      case 'AVERIADO':
-      case 'AVERIA':
-      case 'BAJA': return const Color(0xFFFB7185);
+      case 'DISPONIBLE': return const Color(0xFF38BDF8);
       case 'REPARACIÓN':
       case 'CALIBRACIÓN': return const Color(0xFFFBBF24);
+      case 'AVERIADO':
+      case 'BAJA': return const Color(0xFFFB7185);
+      case 'TRASLADO': return const Color(0xFF818CF8);
       default: return const Color(0xFF38BDF8);
     }
   }
 
-  Future<void> _cambiarEstado(String nuevoEstado) async {
-    bool ok = await ApiService.actualizarEstadoActivo(widget.activoId, nuevoEstado);
-    if (ok) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text("ESTADO ACTUALIZADO: $nuevoEstado"),
-        backgroundColor: _getEstadoColor(nuevoEstado).withValues(alpha: 0.8),
-        behavior: SnackBarBehavior.floating,
-      ));
-      _refreshData();
-    }
+  Widget _buildSeccionAccionesRapidas(Map<String, dynamic> activo) {
+    final theme = Theme.of(context);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Icon(Icons.bolt, size: 18, color: theme.colorScheme.primary),
+            const SizedBox(width: 8),
+            Text("CAMBIAR ESTADO", 
+              style: TextStyle(
+                fontSize: 12, 
+                fontWeight: FontWeight.w900, 
+                letterSpacing: 1.5, 
+                color: theme.colorScheme.onSurface.withValues(alpha: 0.5)
+              )
+            ),
+          ],
+        ),
+        const SizedBox(height: 15),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            _botonEstadoItem(activo, "OPERATIVO", const Color(0xFF4ADE80), Icons.check_circle),
+            _botonEstadoItem(activo, "AVERIADO", const Color(0xFFFB7185), Icons.warning_rounded),
+            _botonEstadoItem(activo, "REPARACIÓN", const Color(0xFFFBBF24), Icons.build_circle),
+            _botonEstadoItem(activo, "BAJA", Colors.grey, Icons.not_interested),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _botonEstadoItem(Map<String, dynamic> activo, String estado, Color color, IconData icono) {
+    return InkWell(
+      onTap: () async {
+        bool ok = await ApiService.actualizarEstadoActivo(activo['id'], estado);
+        if (!mounted) return;
+        if (ok) {
+          _refreshData();
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text("Estado actualizado a $estado"), backgroundColor: color)
+          );
+        }
+      },
+      child: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.1),
+              shape: BoxShape.circle,
+              border: Border.all(color: color.withValues(alpha: 0.2))
+            ),
+            child: Icon(icono, color: color, size: 24),
+          ),
+          const SizedBox(height: 6),
+          Text(estado, style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: color)),
+        ],
+      ),
+    );
+  }
+
+  void _abrirDialogoTransferencia() {
+    int? ubicacionId;
+    final motivoController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Text("REGISTRAR TRANSFERENCIA", 
+          style: TextStyle(fontSize: 14, fontWeight: FontWeight.w900, letterSpacing: 1)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            FutureBuilder<List<dynamic>>(
+              future: ApiService.getTodasLasUbicaciones(), 
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) return const LinearProgressIndicator();
+                if (!snapshot.hasData || snapshot.data!.isEmpty) return const Text("No hay ubicaciones");
+                
+                return DropdownButtonFormField<int>(
+                  decoration: const InputDecoration(labelText: "Ubicación Destino", border: OutlineInputBorder()),
+                  items: snapshot.data!.map((u) => DropdownMenuItem<int>(
+                    value: u['id'], child: Text(u['nombre'].toString().toUpperCase()),
+                  )).toList(),
+                  onChanged: (value) => ubicacionId = value,
+                );
+              },
+            ),
+            const SizedBox(height: 20),
+            TextField(
+              controller: motivoController,
+              decoration: const InputDecoration(labelText: "Motivo", border: OutlineInputBorder()),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext), 
+            child: const Text("CANCELAR")
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              if (ubicacionId == null) return;
+              
+              bool ok = await ApiService.registrarMovimiento(
+                widget.activoId, 
+                ubicacionId!, 
+                "TRASLADO", 
+                motivoController.text
+              );
+              
+              if (!dialogContext.mounted) return;
+              
+              if (ok) {
+                Navigator.of(dialogContext).pop();
+                _refreshData();
+              }
+            },
+            child: const Text("CONFIRMAR"),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    final accentColor = Theme.of(context).colorScheme.primary;
+    final theme = Theme.of(context);
+    final accentColor = theme.colorScheme.primary;
 
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.activoNombre.toUpperCase()),
         actions: [
-          // MENÚ DE ACCIONES REPARADO Y ESTILIZADO
           PopupMenuButton<String>(
             icon: Icon(Icons.tune, color: accentColor),
-            color: const Color(0xFF1E293B),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-            onSelected: (value) {
+            onSelected: (value) async {
               if (value == 'refresh') {
                 _refreshData();
-              } else {
-                _cambiarEstado(value);
+              } else if (value == 'edit') {
+                final navigator = Navigator.of(context);
+                final datos = await ApiService.obtenerActivo(widget.activoId);
+                
+                if (!mounted || datos == null) return;
+                
+                final res = await navigator.push(
+                  MaterialPageRoute(
+                    builder: (context) => ActivoFormScreen(
+                      ubicacionId: datos['ubicacion'],
+                      ubicacionNombre: datos['ubicacion_nombre'] ?? 'N/A',
+                      activoParaEditar: datos,
+                    ),
+                  ),
+                );
+                if (res == true) _refreshData();
               }
             },
             itemBuilder: (context) => [
-              PopupMenuItem(
-                value: 'refresh',
-                child: Row(
-                  children: [
-                    Icon(Icons.refresh, size: 18, color: accentColor),
-                    const SizedBox(width: 12),
-                    const Text("Actualizar Todo", style: TextStyle(color: Colors.white, fontSize: 13)),
-                  ],
-                ),
-              ),
-              const PopupMenuDivider(height: 10),
-              _buildMenuItem('OPERATIVO', 'Operativo', const Color(0xFF4ADE80)),
-              _buildMenuItem('DISPONIBLE', 'Disponible', const Color(0xFF38BDF8)),
-              _buildMenuItem('REPARACIÓN', 'En Reparación', const Color(0xFFFBBF24)),
-              _buildMenuItem('AVERIADO', 'Avería', const Color(0xFFFB7185)),
-              _buildMenuItem('BAJA', 'Dar de Baja', Colors.white30),
+              const PopupMenuItem(value: 'refresh', child: Text("Actualizar datos")),
+              const PopupMenuItem(value: 'edit', child: Text("Editar Activo")),
             ],
           ),
-          const SizedBox(width: 8),
         ],
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildHeaderSection(),
-            const SizedBox(height: 35),
-            Row(
+      body: FutureBuilder<Map<String, dynamic>?>(
+        key: ValueKey('main_future_$_refreshKey'),
+        future: ApiService.obtenerActivo(widget.activoId),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) return const Center(child: CircularProgressIndicator());
+          if (!snapshot.hasData) return const Center(child: Text("Error al cargar datos"));
+
+          final activo = snapshot.data!;
+
+          return SingleChildScrollView(
+            padding: const EdgeInsets.all(20.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(Icons.history, size: 18, color: accentColor),
-                const SizedBox(width: 8),
-                const Text("HISTORIAL DE MOVIMIENTOS", 
-                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.w900, letterSpacing: 1.5, color: Colors.white60)),
+                _buildHeaderSection(activo),
+                const SizedBox(height: 30),
+                _buildSeccionAccionesRapidas(activo),
+                const SizedBox(height: 35),
+                Row(
+                  children: [
+                    Icon(Icons.history, size: 18, color: accentColor),
+                    const SizedBox(width: 8),
+                    const Text("HISTORIAL DE MOVIMIENTOS", style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                  ],
+                ),
+                const SizedBox(height: 15),
+                _buildMovimientosList(),
               ],
             ),
-            const SizedBox(height: 15),
-            _buildMovimientosList(),
-          ],
-        ),
+          );
+        }
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _mostrarFormularioMovimiento(context),
-        label: const Text("TRANSFERIR", style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: 1)),
+        onPressed: _abrirDialogoTransferencia,
+        label: const Text("TRANSFERIR", style: TextStyle(fontWeight: FontWeight.bold)),
         icon: const Icon(Icons.move_up),
       ),
     );
   }
 
-  PopupMenuItem<String> _buildMenuItem(String val, String text, Color color) {
-    return PopupMenuItem(
-      value: val,
-      child: Row(
+  Widget _buildHeaderSection(Map<String, dynamic> data) {
+    final theme = Theme.of(context);
+    final Color colorEstado = _getEstadoColor(data['estado']);
+    
+    // Lógica para detectar si la revisión está vencida
+    bool isVencido = false;
+    String fechaRevision = data['fecha_proxima_verificacion'] ?? "No programada";
+    
+    if (data['fecha_proxima_verificacion'] != null) {
+      try {
+        DateTime fecha = DateTime.parse(data['fecha_proxima_verificacion']);
+        if (fecha.isBefore(DateTime.now())) {
+          isVencido = true;
+        }
+      } catch (e) {
+        debugPrint("Error parseando fecha: $e");
+      }
+    }
+
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surface,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: theme.colorScheme.onSurface.withValues(alpha: 0.05)),
+      ),
+      child: Column(
         children: [
-          Icon(Icons.circle, size: 10, color: color),
-          const SizedBox(width: 12),
-          Text(text, style: const TextStyle(color: Colors.white, fontSize: 13)),
+          _infoRow(Icons.fingerprint, "IDENTIFICADOR", "#${data['id']}", null),
+          Divider(height: 30, color: theme.colorScheme.onSurface.withValues(alpha: 0.05)),
+          _infoRow(Icons.location_on_outlined, "UBICACIÓN ACTUAL", (data['ubicacion_nombre'] ?? "N/A").toString().toUpperCase(), null),
+          Divider(height: 30, color: theme.colorScheme.onSurface.withValues(alpha: 0.05)),
+          _infoRow(Icons.bolt, "ESTADO ACTUAL", data['estado'].toString().toUpperCase(), colorEstado),
+          Divider(height: 30, color: theme.colorScheme.onSurface.withValues(alpha: 0.05)),
+          _infoRow(
+            Icons.event_available, 
+            "PRÓXIMA REVISIÓN / CALIBRACIÓN", 
+            fechaRevision, 
+            isVencido ? const Color(0xFFFB7185) : null
+          ),
+          Divider(height: 30, color: theme.colorScheme.onSurface.withValues(alpha: 0.05)),
+          _infoRow(Icons.notes, "DESCRIPCIÓN", data['descripcion'] ?? "Sin detalles.", null),
         ],
       ),
     );
   }
 
-  Widget _buildHeaderSection() {
-    return FutureBuilder<Map<String, dynamic>>(
-      future: ApiService.getActivoDetalle(widget.activoId),
-      builder: (context, snapshot) {
-        if (!snapshot.hasData) return const LinearProgressIndicator();
-        final data = snapshot.data!;
-        final Color colorEstado = _getEstadoColor(data['estado']);
-
-        return Container(
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            color: const Color(0xFF1E293B),
-            borderRadius: BorderRadius.circular(24),
-            border: Border.all(color: colorEstado.withValues(alpha: 0.2)),
-          ),
-          child: Column(
-            children: [
-              _infoRow(Icons.fingerprint, "IDENTIFICADOR", "#${data['id']}", null),
-              const Divider(height: 30, color: Colors.white10),
-              _infoRow(Icons.bolt, "ESTADO ACTUAL", data['estado'].toString().toUpperCase(), colorEstado),
-              const Divider(height: 30, color: Colors.white10),
-              _infoRow(Icons.notes, "DESCRIPCIÓN", data['descripcion'] ?? "Sin detalles adicionales registrados.", null),
-            ],
-          ),
-        );
-      },
-    );
+  IconData _getMovimientoIcon(String tipo) {
+    switch (tipo.toUpperCase()) {
+      case 'OPERATIVO': return Icons.check_circle_outline;
+      case 'DISPONIBLE': return Icons.inventory_2_outlined;
+      case 'REPARACIÓN': return Icons.build_circle_outlined;
+      case 'TRASLADO': return Icons.local_shipping_outlined;
+      case 'BAJA': return Icons.delete_sweep_outlined;
+      default: return Icons.history;
+    }
   }
 
   Widget _buildMovimientosList() {
@@ -159,7 +306,7 @@ class _ActivoDetalleScreenState extends State<ActivoDetalleScreen> {
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) return const SizedBox();
         final movimientos = snapshot.data ?? [];
-        if (movimientos.isEmpty) return const Text("SIN REGISTROS PREVIOS", style: TextStyle(color: Colors.white24, fontSize: 11));
+        if (movimientos.isEmpty) return const Text("Sin registros previos.");
 
         return ListView.builder(
           shrinkWrap: true,
@@ -168,53 +315,11 @@ class _ActivoDetalleScreenState extends State<ActivoDetalleScreen> {
           itemBuilder: (context, index) {
             final mov = movimientos[index];
             final color = _getEstadoColor(mov['tipo']);
-            
-            return IntrinsicHeight(
-              child: Row(
-                children: [
-                  Column(
-                    children: [
-                      Container(
-                        width: 12, height: 12,
-                        decoration: BoxDecoration(color: color, shape: BoxShape.circle, 
-                          boxShadow: [BoxShadow(color: color.withValues(alpha: 0.4), blurRadius: 8)]),
-                      ),
-                      Expanded(child: Container(width: 2, color: Colors.white10)),
-                    ],
-                  ),
-                  const SizedBox(width: 20),
-                  Expanded(
-                    child: Container(
-                      margin: const EdgeInsets.only(bottom: 20),
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF1E293B).withValues(alpha: 0.5),
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(mov['tipo'], style: TextStyle(color: color, fontWeight: FontWeight.w900, fontSize: 10, letterSpacing: 1)),
-                              Text(mov['fecha'].toString().substring(0, 10), style: const TextStyle(color: Colors.white24, fontSize: 10)),
-                            ],
-                          ),
-                          const SizedBox(height: 8),
-                          Text("${mov['ubicacion_origen_nombre']} → ${mov['ubicacion_destino_nombre']}", 
-                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
-                          if (mov['motivo'] != null && mov['motivo'].isNotEmpty)
-                            Padding(
-                              padding: const EdgeInsets.only(top: 8),
-                              child: Text(mov['motivo'], style: const TextStyle(color: Colors.white54, fontSize: 12, fontStyle: FontStyle.italic)),
-                            ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+            return ListTile(
+              leading: Icon(_getMovimientoIcon(mov['tipo']), color: color),
+              title: Text("${mov['ubicacion_origen_nombre'] ?? 'Origen'} → ${mov['ubicacion_destino_nombre'] ?? 'Destino'}"),
+              subtitle: Text(mov['fecha'] ?? ''),
+              trailing: Text(mov['tipo'], style: TextStyle(color: color, fontSize: 10, fontWeight: FontWeight.bold)),
             );
           },
         );
@@ -223,112 +328,21 @@ class _ActivoDetalleScreenState extends State<ActivoDetalleScreen> {
   }
 
   Widget _infoRow(IconData icon, String label, String value, Color? color) {
+    final theme = Theme.of(context);
     return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(icon, size: 18, color: color ?? Colors.white38),
+        Icon(icon, size: 18, color: theme.colorScheme.onSurface.withValues(alpha: 0.3)),
         const SizedBox(width: 15),
-        Expanded( 
+        Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                label, 
-                style: const TextStyle(color: Colors.white38, fontSize: 9, fontWeight: FontWeight.w900, letterSpacing: 1)
-              ),
-              Text(
-                value, 
-                style: TextStyle(color: color ?? Colors.white, fontWeight: FontWeight.bold, fontSize: 15),
-                softWrap: true, 
-              ),
+              Text(label, style: TextStyle(color: theme.colorScheme.onSurface.withValues(alpha: 0.4), fontSize: 9)),
+              Text(value, style: TextStyle(color: color ?? theme.colorScheme.onSurface, fontWeight: FontWeight.bold, fontSize: 15)),
             ],
           ),
         ),
       ],
-    );
-  }
-
-  void _mostrarFormularioMovimiento(BuildContext context) {
-    int? seleccionadaId;
-    String seleccionTipo = 'TRASLADO'; 
-    final TextEditingController motivoController = TextEditingController();
-
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: const Color(0xFF0F172A),
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(30))),
-      builder: (context) => StatefulBuilder(
-        builder: (context, setModalState) => Padding(
-          padding: EdgeInsets.only(
-            bottom: MediaQuery.of(context).viewInsets.bottom + 30,
-            left: 25, right: 25, top: 15
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.white10, borderRadius: BorderRadius.circular(10))),
-              const SizedBox(height: 25),
-              const Text("NUEVA TRANSFERENCIA", style: TextStyle(fontSize: 14, fontWeight: FontWeight.w900, letterSpacing: 1)),
-              const SizedBox(height: 25),
-              
-              FutureBuilder<List<dynamic>>(
-                future: ApiService.getTodasLasUbicaciones(),
-                builder: (context, snapshot) {
-                  if (!snapshot.hasData) return const LinearProgressIndicator();
-                  return DropdownButtonFormField<int>(
-                    dropdownColor: const Color(0xFF1E293B),
-                    decoration: const InputDecoration(labelText: "UBICACIÓN DESTINO", filled: true, fillColor: Color(0xFF1E293B)),
-                    items: snapshot.data!.map((ubi) => DropdownMenuItem<int>(
-                      value: ubi['id'], child: Text(ubi['nombre'], style: const TextStyle(color: Colors.white))
-                    )).toList(),
-                    onChanged: (val) => seleccionadaId = val,
-                  );
-                },
-              ),
-              const SizedBox(height: 15),
-
-              DropdownButtonFormField<String>(
-                initialValue: seleccionTipo,
-                dropdownColor: const Color(0xFF1E293B),
-                decoration: const InputDecoration(labelText: "TIPO DE MOVIMIENTO", filled: true, fillColor: Color(0xFF1E293B)),
-                items: const [
-                  DropdownMenuItem(value: 'TRASLADO', child: Text("TRASLADO", style: TextStyle(color: Colors.white))),
-                  DropdownMenuItem(value: 'REPARACIÓN', child: Text("REPARACIÓN", style: TextStyle(color: Colors.white))),
-                  DropdownMenuItem(value: 'CALIBRACIÓN', child: Text("CALIBRACIÓN", style: TextStyle(color: Colors.white))),
-                ],
-                onChanged: (val) => setModalState(() => seleccionTipo = val!),
-              ),
-              const SizedBox(height: 15),
-              
-              TextField(
-                controller: motivoController,
-                textCapitalization: TextCapitalization.sentences,
-                style: const TextStyle(color: Colors.white),
-                decoration: const InputDecoration(labelText: "MOTIVO / NOTAS", filled: true, fillColor: Color(0xFF1E293B)),
-              ),
-              
-              const SizedBox(height: 30),
-              SizedBox(
-                width: double.infinity, height: 55,
-                child: ElevatedButton(
-                  onPressed: () async {
-                    if (seleccionadaId != null) {
-                      bool ok = await ApiService.registrarMovimiento(
-                        widget.activoId, seleccionadaId!, seleccionTipo, motivoController.text);
-                      if (ok && context.mounted) {
-                        Navigator.pop(context);
-                        _refreshData();
-                      }
-                    }
-                  },
-                  child: const Text("CONFIRMAR TRANSFERENCIA", style: TextStyle(fontWeight: FontWeight.w900)),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
     );
   }
 }

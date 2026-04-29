@@ -1,3 +1,5 @@
+from time import timezone
+
 from django.db import models
 from django.contrib.auth.models import User
 
@@ -58,6 +60,13 @@ class Activo(models.Model):
     
     fecha_ultimo_mantenimiento = models.DateField(null=True, blank=True)
     fecha_creacion = models.DateTimeField(auto_now_add=True)
+
+    # Método para determinar si el activo está vencido
+    @property
+    def esta_vencido(self):
+        if self.requiere_calibracion and self.fecha_proxima_verificacion:
+            return self.fecha_proxima_verificacion <= timezone.now().date()
+        return False
 
     def __str__(self):
         return f"{self.nombre} [{self.estado}]"

@@ -18,27 +18,30 @@ class _ActivosScreenState extends State<ActivosScreen> {
   String estadoSeleccionado = "TODOS";
   final List<String> categorias = ["TODOS", "OPERATIVO", "DISPONIBLE", "REPARACIÓN", "AVERIADO", "TRASLADO", "CALIBRACIÓN", "BAJA"];
 
-  // Función para refrescar la lista
   void _refreshData() {
     setState(() {});
   }
 
   Color _getEstadoColor(String? estado) {
     if (estado == null) return const Color(0xFF94A3B8);
-    switch (estado.toLowerCase()) {
-      case 'operativo': return const Color(0xFF4ADE80);
-      case 'disponible':
-      case 'traslado': return const Color(0xFFFBBF24);
-      case 'averiado':
-      case 'reparación':
-      case 'baja': return const Color(0xFFFB7185);
+    switch (estado.toUpperCase()) {
+      case 'OPERATIVO': return const Color(0xFF4ADE80);
+      case 'DISPONIBLE': return const Color(0xFF38BDF8);
+      case 'REPARACIÓN':
+      case 'CALIBRACIÓN': return const Color(0xFFFBBF24);
+      case 'AVERIADO':
+      case 'AVERIA':
+      case 'BAJA': return const Color(0xFFFB7185);
+      case 'TRASLADO': return const Color(0xFF818CF8);
       default: return const Color(0xFF38BDF8);
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final accentColor = Theme.of(context).colorScheme.primary;
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final accentColor = theme.colorScheme.primary;
 
     return Scaffold(
       appBar: AppBar(
@@ -54,10 +57,10 @@ class _ActivosScreenState extends State<ActivosScreen> {
               );
             },
           ),
-          // MENÚ DE ACCIONES REPARADO
           PopupMenuButton<String>(
             icon: const Icon(Icons.more_vert),
-            color: const Color(0xFF1E293B),
+            color: theme.colorScheme.surface,
+            elevation: 8,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
             onSelected: (value) {
               if (value == 'refresh') {
@@ -73,17 +76,17 @@ class _ActivosScreenState extends State<ActivosScreen> {
                   children: [
                     Icon(Icons.refresh, size: 18, color: accentColor),
                     const SizedBox(width: 12),
-                    const Text("Actualizar Lista", style: TextStyle(color: Colors.white, fontSize: 14)),
+                    Text("Actualizar Lista", style: TextStyle(color: theme.colorScheme.onSurface, fontSize: 14)),
                   ],
                 ),
               ),
-              const PopupMenuItem(
+              PopupMenuItem(
                 value: 'add',
                 child: Row(
                   children: [
-                    Icon(Icons.add_box_outlined, size: 18, color: Colors.white54),
-                    SizedBox(width: 12),
-                    Text("Nuevo Activo", style: TextStyle(color: Colors.white, fontSize: 14)),
+                    Icon(Icons.add_box_outlined, size: 18, color: theme.colorScheme.onSurface.withValues(alpha: 0.5)),
+                    const SizedBox(width: 12),
+                    Text("Nuevo Activo", style: TextStyle(color: theme.colorScheme.onSurface, fontSize: 14)),
                   ],
                 ),
               ),
@@ -94,7 +97,7 @@ class _ActivosScreenState extends State<ActivosScreen> {
       ),
       body: Column(
         children: [
-          // BARRA DE FILTROS
+          // BARRA DE FILTROS (ChoiceChips adaptativos)
           Container(
             height: 50,
             margin: const EdgeInsets.symmetric(vertical: 10),
@@ -112,14 +115,21 @@ class _ActivosScreenState extends State<ActivosScreen> {
                     selected: isSelected,
                     onSelected: (selected) => setState(() => estadoSeleccionado = cat),
                     selectedColor: accentColor,
-                    backgroundColor: const Color(0xFF1E293B),
+                    backgroundColor: theme.colorScheme.surface,
                     showCheckmark: false,
                     labelStyle: TextStyle(
-                      color: isSelected ? Colors.black : Colors.white70,
+                      color: isSelected 
+                        ? (isDark ? Colors.black : Colors.white) 
+                        : theme.colorScheme.onSurface.withValues(alpha: 0.7),
                       fontWeight: FontWeight.bold,
                       fontSize: 12
                     ),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12), side: BorderSide.none),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12), 
+                      side: BorderSide(
+                        color: isSelected ? Colors.transparent : theme.colorScheme.onSurface.withValues(alpha: 0.1)
+                      )
+                    ),
                   ),
                 );
               },
@@ -138,12 +148,12 @@ class _ActivosScreenState extends State<ActivosScreen> {
                   return const Center(child: CircularProgressIndicator());
                 }
                 if (snapshot.hasError) {
-                  return Center(child: Text("Error: ${snapshot.error}", style: const TextStyle(color: Colors.white30)));
+                  return Center(child: Text("Error: ${snapshot.error}", style: TextStyle(color: theme.colorScheme.onSurface.withValues(alpha: 0.3))));
                 }
                 final activos = snapshot.data ?? [];
                 if (activos.isEmpty) {
-                  return const Center(
-                    child: Text("NO HAY REGISTROS", style: TextStyle(color: Colors.white30, letterSpacing: 2)),
+                  return Center(
+                    child: Text("NO HAY REGISTROS", style: TextStyle(color: theme.colorScheme.onSurface.withValues(alpha: 0.3), letterSpacing: 2)),
                   );
                 }
 
@@ -158,9 +168,9 @@ class _ActivosScreenState extends State<ActivosScreen> {
                     return Container(
                       margin: const EdgeInsets.only(bottom: 12),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF1E293B),
+                        color: theme.colorScheme.surface,
                         borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: Colors.white.withValues(alpha:0.05)),
+                        border: Border.all(color: theme.colorScheme.onSurface.withValues(alpha: 0.05)),
                       ),
                       child: ListTile(
                         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
@@ -174,13 +184,13 @@ class _ActivosScreenState extends State<ActivosScreen> {
                         ),
                         title: Text(
                           activo["nombre"],
-                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: theme.colorScheme.onSurface),
                         ),
                         subtitle: Text(
                           estado.toUpperCase(),
                           style: TextStyle(color: colorEstado, fontSize: 10, fontWeight: FontWeight.w900, letterSpacing: 1),
                         ),
-                        trailing: Icon(Icons.chevron_right, color: Colors.white.withValues(alpha:0.2)),
+                        trailing: Icon(Icons.chevron_right, color: theme.colorScheme.onSurface.withValues(alpha: 0.2)),
                         onTap: () {
                           Navigator.push(
                             context,
@@ -209,7 +219,6 @@ class _ActivosScreenState extends State<ActivosScreen> {
     );
   }
 
-  // Función privada para navegar al formulario y refrescar al volver
   Future<void> _irAFomulario() async {
     final bool? result = await Navigator.push(
       context,

@@ -1,3 +1,5 @@
+from django.utils import timezone
+
 from rest_framework import viewsets, permissions, filters
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -28,15 +30,27 @@ class UbicacionViewSet(viewsets.ModelViewSet):
 
 
 class ActivoViewSet(viewsets.ModelViewSet):
-    queryset = Activo.objects.all()
     serializer_class = ActivoSerializer
     permission_classes = [permissions.AllowAny]
-
     filter_backends = [DjangoFilterBackend, filters.SearchFilter]
-    # Permite filtrar por estado y ubicación, y buscar por nombre o descripción
-    filterset_fields = ['estado','ubicacion', 'ubicacion__estacion']
-    # Permite búsqueda parcial por nombre o descripción del activo
+    filterset_fields = ['estado', 'ubicacion', 'ubicacion__estacion']
     search_fields = ['nombre', 'descripcion']
+
+    def get_queryset(self):
+        queryset = Activo.objects.all()
+        
+        # Filtro personalizado para Urgencias/Vencimientos
+        vencidos = self.request.query_params.get('vencidos', None)
+        
+        if vencidos == 'true':
+            hoy = timezone.now().date()
+            # Filtramos: requiere calibración Y la fecha es hoy o anterior
+            queryset = queryset.filter(
+                requiere_calibracion=True,
+                fecha_proxima_verificacion__lte=hoy
+            )
+            
+        return queryset
 
     @action(detail=True, methods=['get'])
     def movimientos(self, request, pk=None):

@@ -41,6 +41,8 @@ INSTALLED_APPS = [
     # librerias externas
     'django_filters',
     'rest_framework', # Django REST FRAMEWORK
+    'rest_framework.authtoken',
+    'corsheaders',
 
     # apps del proyecto
     'inventory', # app Trackit
@@ -117,8 +119,11 @@ AUTH_PASSWORD_VALIDATORS = [
 
 # Añadida autenticación
 REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.TokenAuthentication',
+    ],
     'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.AllowAny',
+        'rest_framework.permissions.IsAuthenticated',
     ],
     'DEFAULT_FILTER_BACKENDS': [
         'django_filters.rest_framework.DjangoFilterBackend'

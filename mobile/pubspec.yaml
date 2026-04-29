@@ -42,6 +42,12 @@ dependencies:
   cupertino_icons: ^1.0.8
   mobile_scanner: ^7.2.0
 
+  # PARA EL LOGIN
+  shared_preferences: ^2.2.2
+
+  # PARA MEJORAR LA UI DE LOGIN CON ANIMACIONES
+  flutter_spinkit: ^5.2.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

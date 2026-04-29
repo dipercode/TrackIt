@@ -4,7 +4,7 @@ from .views import EstacionViewSet, UbicacionViewSet, ActivoViewSet, MovimientoV
 router = DefaultRouter()
 router.register(r'estaciones', EstacionViewSet)
 router.register(r'ubicaciones', UbicacionViewSet)
-router.register(r'activos', ActivoViewSet)
+router.register(r'activos', ActivoViewSet, basename='activo')
 router.register(r'movimientos', MovimientoViewSet)
 
 urlpatterns = router.urls

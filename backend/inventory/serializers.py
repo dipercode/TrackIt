@@ -26,6 +26,10 @@ class ActivoSerializer(serializers.ModelSerializer):
             'estado', 
             'ubicacion', 
             'ubicacion_nombre',
+            'codigo_qr',
+            'requiere_calibracion',
+            'fecha_proxima_verificacion',
+            'imagen',
         ]
 
 
