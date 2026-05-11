@@ -90,3 +90,10 @@
 * [App Móvil]
     - Implementación de lógica de login, guardando el token mediante shared_preferences y método de limpieza de sesión (logout).
     - UX/UI: modificación de main.dart para arranque condicional (login vs home). Añadido botón de cierre de sesión con diálogo de confirmación en pantalla principal.
+
+## 2026-05-11
+
+* Despliegue en hardware real: Migración exitosa del entorno de pruebas del emulador al dispositivo físico (Redmi Note 8 Pro).
+* Resolución de conectividad: Configuración de red local mediante IP estática y apertura del servidor Django en la red (0.0.0.0).
+* Seguridad API: Resolución del error CSRF 403 mediante la implementación de una vista puente (@csrf_exempt) y ajuste del Middleware para compatibilidad con aplicaciones móviles.
+* Flujo de recuperación de contraseña: Validación completa del ciclo de restablecimiento de contraseña (envío de email vía SMTP Gmail -> enlace web -> cambiko de clave -> login exitoso en App).
