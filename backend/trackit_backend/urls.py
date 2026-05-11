@@ -17,9 +17,25 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from rest_framework.authtoken.views import obtain_auth_token
+from django.contrib.auth import views as auth_views
+from django.views.decorators.csrf import csrf_exempt
+from django.http import HttpResponse
+
+@csrf_exempt
+def public_reset_password(request, *args, **kwargs):
+    # Forzamos a que Django crea que no hay sesión ni necesidad de CSRF
+    request._dont_enforce_csrf_checks = True
+    return auth_views.PasswordResetView.as_view()(request, *args, **kwargs)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/login/', obtain_auth_token),
     path('api/', include('inventory.urls')),
+
+    path('api/password_reset/', public_reset_password, name='password_reset'),
+
+    # Rutas para el restablecimiento de contraseña
+    path('api/password_reset/done/', auth_views.PasswordResetDoneView.as_view(), name='password_reset_done'),
+    path('api/reset/<uidb64>/<token>/', auth_views.PasswordResetConfirmView.as_view(), name='password_reset_confirm'),
+    path('api/reset/done/', auth_views.PasswordResetCompleteView.as_view(), name='password_reset_complete'),
 ]
