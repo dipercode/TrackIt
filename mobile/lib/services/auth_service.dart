@@ -4,7 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class AuthService {
   // La base URL ya incluye el /api
-  static const String baseUrl = "http://10.0.2.2:8000/api";
+  static const String baseUrl = "http://192.168.50.100:8000/api";
 
   // Iniciar sesión con el endpoint correcto de Django
   static Future<bool> login(String username, String password) async {
