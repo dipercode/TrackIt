@@ -99,66 +99,205 @@ class _ActivoDetalleScreenState extends State<ActivoDetalleScreen> {
   }
 
   void _abrirDialogoTransferencia() {
+    final theme = Theme.of(context);
+    int? estacionSeleccionadaId;
     int? ubicacionId;
+    List<dynamic> estaciones = [];
+    List<dynamic> ubicaciones = [];
+    bool cargandoUbicaciones = false;
+
     final motivoController = TextEditingController();
 
     showDialog(
       context: context,
-      builder: (dialogContext) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text("REGISTRAR TRANSFERENCIA", 
-          style: TextStyle(fontSize: 14, fontWeight: FontWeight.w900, letterSpacing: 1)),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            FutureBuilder<List<dynamic>>(
-              future: ApiService.getTodasLasUbicaciones(), 
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) return const LinearProgressIndicator();
-                if (!snapshot.hasData || snapshot.data!.isEmpty) return const Text("No hay ubicaciones");
-                
-                return DropdownButtonFormField<int>(
-                  decoration: const InputDecoration(labelText: "Ubicación Destino", border: OutlineInputBorder()),
-                  items: snapshot.data!.map((u) => DropdownMenuItem<int>(
-                    value: u['id'], child: Text(u['nombre'].toString().toUpperCase()),
-                  )).toList(),
-                  onChanged: (value) => ubicacionId = value,
-                );
-              },
+      barrierDismissible: false, // Evita que se cierre por error al pulsar fuera
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (context, setDialogState) {
+          return AlertDialog(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+            title: const Text(
+              "REGISTRAR TRANSFERENCIA",
+              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w900, letterSpacing: 1),
             ),
-            const SizedBox(height: 20),
-            TextField(
-              controller: motivoController,
-              decoration: const InputDecoration(labelText: "Motivo", border: OutlineInputBorder()),
+            content: SizedBox(
+              width: MediaQuery.of(context).size.width * 0.85, // Delimita un ancho elegante
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const SizedBox(height: 5),
+                    // ================= DROPDOWN 1: ESTACIONES =================
+                    FutureBuilder<List<dynamic>>(
+                      future: estaciones.isEmpty ? ApiService.getEstaciones() : Future.value(estaciones),
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState == ConnectionState.waiting && estaciones.isEmpty) {
+                          return const Padding(
+                            padding: EdgeInsets.symmetric(vertical: 10),
+                            child: LinearProgressIndicator(),
+                          );
+                        }
+                        if (snapshot.hasData && estaciones.isEmpty) {
+                          estaciones = snapshot.data!;
+                        }
+
+                        return DropdownButtonFormField<int>(
+                          initialValue: estacionSeleccionadaId,
+                          isExpanded: true, // Evita desbordes horizontales de texto largo
+                          decoration: const InputDecoration(
+                            labelText: "Estación Destino",
+                            prefixIcon: Icon(Icons.business),
+                            border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(12))),
+                          ),
+                          items: estaciones.map((e) => DropdownMenuItem<int>(
+                            value: e['id'],
+                            child: Text(e['nombre'].toString().toUpperCase(), overflow: TextOverflow.ellipsis),
+                          )).toList(),
+                          onChanged: (value) async {
+                            if (value == estacionSeleccionadaId) return;
+                            
+                            // Reseteamos estados dependientes
+                            setDialogState(() {
+                              estacionSeleccionadaId = value;
+                              ubicacionId = null;
+                              ubicaciones = [];
+                              cargandoUbicaciones = true;
+                            });
+
+                            try {
+                              List<dynamic> data = await ApiService.getUbicaciones(value!);
+                              setDialogState(() {
+                                ubicaciones = data;
+                                cargandoUbicaciones = false;
+                              });
+                            } catch (e) {
+                              setDialogState(() { cargandoUbicaciones = false; });
+                            }
+                          },
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 20),
+
+                    // ================= DROPDOWN 2: UBICACIONES =================
+                    if (cargandoUbicaciones)
+                      const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 15),
+                        child: CircularProgressIndicator(),
+                      )
+                    else
+                      DropdownButtonFormField<int>(
+                        initialValue: ubicacionId,
+                        isExpanded: true,
+                        // Estilo adaptativo para el texto que SE SELECCIONA dentro del botón
+                        style: theme.textTheme.bodyLarge?.copyWith(
+                          fontSize: 13, // Un punto más pequeño para asegurar que quepa
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        onChanged: estacionSeleccionadaId == null 
+                            ? null 
+                            : (value) => setDialogState(() => ubicacionId = value),
+                        
+                        // TEXTO RESPONSIVE CUANDO ESTÁ VACÍO
+                        hint: Text(
+                          estacionSeleccionadaId == null 
+                              ? "Selecciona una estación primero" 
+                              : "Ubicación exacta destino",
+                          style: const TextStyle(fontSize: 13), // Texto del contenido adaptado
+                          overflow: TextOverflow.ellipsis,
+                        ),
+
+                        decoration: InputDecoration(
+                          // Reducimos el tamaño del label flotante (el que se va arriba al seleccionar)
+                          labelStyle: const TextStyle(fontSize: 12), 
+                          floatingLabelBehavior: FloatingLabelBehavior.auto,
+                          labelText: estacionSeleccionadaId == null 
+                              ? "Estación requerida" 
+                              : "Ubicación Destino", // Nombre más corto e intuitivo para el label flotante
+                          prefixIcon: const Icon(Icons.location_on, size: 20),
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14), // Más aire interno
+                          disabledBorder: OutlineInputBorder(
+                            borderRadius: const BorderRadius.all(Radius.circular(12)),
+                            borderSide: BorderSide(color: Colors.grey.withValues(alpha: 0.3)),
+                          ),
+                          border: const OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(12))),
+                        ),
+                        items: ubicaciones.isEmpty && estacionSeleccionadaId != null
+                            ? [
+                                const DropdownMenuItem<int>(
+                                  value: null,
+                                  child: Text("SIN UBICACIONES", style: TextStyle(color: Colors.grey, fontSize: 13)),
+                                )
+                              ]
+                            : ubicaciones.map((u) => DropdownMenuItem<int>(
+                                value: u['id'],
+                                child: Text(
+                                  u['nombre'].toString().toUpperCase(), 
+                                  style: const TextStyle(fontSize: 13), // Texto de las opciones desplegadas
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              )).toList(),
+                      ),
+                    const SizedBox(height: 20),
+
+                    // ================= CAMPO DE TEXTO: MOTIVO =================
+                    TextField(
+                      controller: motivoController,
+                      maxLines: 2, // Permite mayor comodidad de escritura
+                      decoration: const InputDecoration(
+                        labelText: "Motivo del traslado",
+                        prefixIcon: Icon(Icons.edit_note),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(12))),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext), 
-            child: const Text("CANCELAR")
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              if (ubicacionId == null) return;
-              
-              bool ok = await ApiService.registrarMovimiento(
-                widget.activoId, 
-                ubicacionId!, 
-                "TRASLADO", 
-                motivoController.text
-              );
-              
-              if (!dialogContext.mounted) return;
-              
-              if (ok) {
-                Navigator.of(dialogContext).pop();
-                _refreshData();
-              }
-            },
-            child: const Text("CONFIRMAR"),
-          ),
-        ],
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(dialogContext),
+                child: const Text("CANCELAR", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey)),
+              ),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                ),
+                onPressed: (ubicacionId == null) 
+                    ? null // Deshabilita el botón si no se completó la ubicación jerárquica
+                    : () async {
+                        bool ok = await ApiService.registrarMovimiento(
+                          widget.activoId,
+                          ubicacionId!,
+                          "TRASLADO",
+                          motivoController.text.trim(),
+                        );
+
+                        if (!dialogContext.mounted) return;
+
+                        if (ok) {
+                          Navigator.of(dialogContext).pop();
+                          _refreshData();
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text("Transferencia registrada con éxito"),
+                              backgroundColor: Colors.green,
+                            ),
+                          );
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text("Error al registrar la transferencia"),
+                              backgroundColor: Colors.red,
+                            ),
+                          );
+                        }
+                      },
+                child: const Text("CONFIRMAR", style: TextStyle(fontWeight: FontWeight.bold)),
+              ),
+            ],
+          );
+        },
       ),
     );
   }
