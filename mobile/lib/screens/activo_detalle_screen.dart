@@ -21,22 +21,163 @@ class _ActivoDetalleScreenState extends State<ActivoDetalleScreen> {
     });
   }
 
+  // COLORES CORPORATIVOS INTENSOS DE ALTO CONTRASTE (CORREGIDOS PARA FONDO CLARO)
   Color _getEstadoColor(String? estado) {
-    if (estado == null) return const Color(0xFF94A3B8);
+    if (estado == null) return const Color(0xFF64748B);
     switch (estado.toUpperCase()) {
-      case 'OPERATIVO': return const Color(0xFF4ADE80);
-      case 'DISPONIBLE': return const Color(0xFF38BDF8);
-      case 'REPARACIÓN':
-      case 'CALIBRACIÓN': return const Color(0xFFFBBF24);
-      case 'AVERIADO':
-      case 'BAJA': return const Color(0xFFFB7185);
-      case 'TRASLADO': return const Color(0xFF818CF8);
-      default: return const Color(0xFF38BDF8);
+      case 'OPERATIVO': return const Color(0xFF16A34A);   // Verde sólido vibrante
+      case 'DISPONIBLE': return const Color(0xFF0284C7);  // Celeste fuerte legible
+      case 'TRASLADO': return const Color(0xFF4F46E5);    // Índigo profundo
+      case 'AVERIADO': return const Color(0xFFE11D48);    // Rojo / Rosa de advertencia
+      case 'REPARACIÓN': return const Color(0xFFD97706);  // Ámbar / Dorado oscuro visible
+      case 'CALIBRACIÓN': return const Color(0xFFC2410C); // Naranja quemado de alta definición
+      case 'BAJA': return const Color(0xFF475569);        // Gris pizarra oscuro
+      default: return const Color(0xFF0284C7);
     }
   }
 
+  // MAPEADO DE ÍCONOS PARA LOS 7 ESTADOS
+  IconData _getEstadoIcon(String estado) {
+    switch (estado.toUpperCase()) {
+      case 'OPERATIVO': return Icons.check_circle_rounded;
+      case 'DISPONIBLE': return Icons.inventory_2_rounded;
+      case 'TRASLADO': return Icons.local_shipping_rounded;
+      case 'AVERIADO': return Icons.warning_rounded;
+      case 'REPARACIÓN': return Icons.build_circle_rounded;
+      case 'CALIBRACIÓN': return Icons.analytics_rounded;
+      case 'BAJA': return Icons.money_off_rounded;
+      default: return Icons.help_center_rounded;
+    }
+  }
+
+  void _mostrarModalQR(Map<String, dynamic> data, BuildContext pantallaContext) {
+    final theme = Theme.of(context);
+    if (data['qr_imagen'] == null) return;
+
+    final String urlFinal = data['qr_imagen'].toString().startsWith('http')
+        ? data['qr_imagen']
+        : "${ApiService.mediaUrl}${data['qr_imagen']}";
+
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (dialogContext) => Dialog(
+        backgroundColor: Colors.transparent,
+        insetPadding: const EdgeInsets.all(24),
+        child: Container(
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: theme.colorScheme.surface,
+            borderRadius: BorderRadius.circular(32),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.2),
+                blurRadius: 25,
+                offset: const Offset(0, 10),
+              )
+            ],
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: Text(
+                      data['nombre'].toString().toUpperCase(),
+                      style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16, letterSpacing: 0.5),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  IconButton(
+                    onPressed: () => Navigator.pop(dialogContext),
+                    icon: const Icon(Icons.close),
+                    style: IconButton.styleFrom(
+                      backgroundColor: theme.colorScheme.onSurface.withValues(alpha: 0.05),
+                    ),
+                  )
+                ],
+              ),
+              const SizedBox(height: 20),
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(24),
+                  border: Border.all(color: theme.colorScheme.onSurface.withValues(alpha: 0.1)),
+                ),
+                child: Image.network(
+                  urlFinal,
+                  height: 260,
+                  width: 260,
+                  fit: BoxFit.contain,
+                  errorBuilder: (context, error, stackTrace) {
+                    return const SizedBox(
+                      height: 260,
+                      width: 260,
+                      child: Icon(Icons.qr_code_2, size: 100, color: Colors.grey),
+                    );
+                  },
+                ),
+              ),
+              const SizedBox(height: 20),
+              SelectableText(
+                data['codigo_qr'] ?? "TRACKIT-N/A",
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 1.2,
+                  color: theme.colorScheme.primary,
+                ),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                "ID de control de inventario seguro",
+                style: TextStyle(
+                  fontSize: 11,
+                  color: theme.colorScheme.onSurface.withValues(alpha: 0.4),
+                ),
+              ),
+              const SizedBox(height: 20),
+              OutlinedButton.icon(
+                onPressed: () {
+                  Navigator.pop(dialogContext);
+                  ScaffoldMessenger.of(pantallaContext).showSnackBar(
+                    const SnackBar(
+                      content: Text("Enviando código QR a la impresora térmica..."),
+                      backgroundColor: Colors.blue,
+                    ),
+                  );
+                },
+                icon: const Icon(Icons.print, size: 18),
+                label: const Text("IMPRIMIR ETIQUETA", style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                style: OutlinedButton.styleFrom(
+                  minimumSize: const Size.fromHeight(48),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // LISTADO EXCLUSIVO CON LOS 6 ESTADOS ASIGNABLES MANUALMENTE
   Widget _buildSeccionAccionesRapidas(Map<String, dynamic> activo) {
     final theme = Theme.of(context);
+    
+    final todosLosEstados = [
+      'OPERATIVO',
+      'DISPONIBLE',
+      'AVERIADO',
+      'REPARACIÓN',
+      'CALIBRACIÓN',
+      'BAJA'
+    ];
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -54,52 +195,106 @@ class _ActivoDetalleScreenState extends State<ActivoDetalleScreen> {
             ),
           ],
         ),
-        const SizedBox(height: 15),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            _botonEstadoItem(activo, "OPERATIVO", const Color(0xFF4ADE80), Icons.check_circle),
-            _botonEstadoItem(activo, "AVERIADO", const Color(0xFFFB7185), Icons.warning_rounded),
-            _botonEstadoItem(activo, "REPARACIÓN", const Color(0xFFFBBF24), Icons.build_circle),
-            _botonEstadoItem(activo, "BAJA", Colors.grey, Icons.not_interested),
-          ],
+        const SizedBox(height: 16),
+        SizedBox(
+          height: 80,
+          child: ListView.separated(
+            scrollDirection: Axis.horizontal,
+            itemCount: todosLosEstados.length,
+            separatorBuilder: (context, index) => const SizedBox(width: 18),
+            itemBuilder: (context, index) {
+              final estado = todosLosEstados[index];
+              final color = _getEstadoColor(estado);
+              final icono = _getEstadoIcon(estado);
+              final bool esEstadoActual = activo['estado'].toString().toUpperCase() == estado;
+
+              return _botonEstadoItem(activo, estado, color, icono, esEstadoActual);
+            },
+          ),
         ),
       ],
     );
   }
 
-  Widget _botonEstadoItem(Map<String, dynamic> activo, String estado, Color color, IconData icono) {
+  // Botones cambios de estado de alto contraste.
+  Widget _botonEstadoItem(Map<String, dynamic> activo, String estado, Color color, IconData icono, bool esActual) {
     return InkWell(
-      onTap: () async {
-        bool ok = await ApiService.actualizarEstadoActivo(activo['id'], estado);
-        if (!mounted) return;
-        if (ok) {
+      onTap: esActual ? null : () async {
+        // 1. Actualizamos el estado principal en la base de datos
+        bool okEstado = await ApiService.actualizarEstadoActivo(activo['id'], estado);
+        
+        if (okEstado) {
+          // 2. Insertamos el registro en el historial para que quede constancia del cambio.
+          // Como no se mueve físicamente, el destino es su ubicación actual ('ubicacion').
+          await ApiService.registrarMovimiento(
+            activo['id'],
+            activo['ubicacion'], // Se queda en el mismo lugar
+            estado,              // Guarda el nuevo estado como tipo de movimiento ("AVERIADO", "OPERATIVO", etc.)
+            "Cambio de estado manual desde la ficha del activo", // Motivo automático
+          );
+
+          if (!mounted) return;
           _refreshData();
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text("Estado actualizado a $estado"), backgroundColor: color)
+            SnackBar(
+              content: Text("Estado actualizado a $estado con éxito"), 
+              backgroundColor: color,
+              behavior: SnackBarBehavior.floating,
+            )
+          );
+        } else {
+          if (!mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text("Error al intentar actualizar el estado"), 
+              backgroundColor: Colors.red,
+              behavior: SnackBarBehavior.floating,
+            )
           );
         }
       },
-      child: Column(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.1),
-              shape: BoxShape.circle,
-              border: Border.all(color: color.withValues(alpha: 0.2))
+      borderRadius: BorderRadius.circular(16),
+      child: Opacity(
+        opacity: esActual ? 1.0 : 0.75,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: esActual ? color : color.withValues(alpha: 0.15),
+                shape: BoxShape.circle,
+                border: Border.all(color: color, width: esActual ? 2.5 : 1.2),
+                boxShadow: esActual ? [
+                  BoxShadow(
+                    color: color.withValues(alpha: 0.35),
+                    blurRadius: 8,
+                    offset: const Offset(0, 4)
+                  )
+                ] : null,
+              ),
+              child: Icon(
+                icono, 
+                color: esActual ? Colors.white : color,
+                size: 22
+              ),
             ),
-            child: Icon(icono, color: color, size: 24),
-          ),
-          const SizedBox(height: 6),
-          Text(estado, style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: color)),
-        ],
+            const SizedBox(height: 6),
+            Text(
+              estado, 
+              style: TextStyle(
+                fontSize: 10, 
+                fontWeight: esActual ? FontWeight.w900 : FontWeight.w800,
+                color: color,
+              )
+            ),
+          ],
+        ),
       ),
     );
   }
 
   void _abrirDialogoTransferencia() {
-    final theme = Theme.of(context);
     int? estacionSeleccionadaId;
     int? ubicacionId;
     List<dynamic> estaciones = [];
@@ -110,7 +305,7 @@ class _ActivoDetalleScreenState extends State<ActivoDetalleScreen> {
 
     showDialog(
       context: context,
-      barrierDismissible: false, // Evita que se cierre por error al pulsar fuera
+      barrierDismissible: false, 
       builder: (dialogContext) => StatefulBuilder(
         builder: (context, setDialogState) {
           return AlertDialog(
@@ -120,13 +315,12 @@ class _ActivoDetalleScreenState extends State<ActivoDetalleScreen> {
               style: TextStyle(fontSize: 14, fontWeight: FontWeight.w900, letterSpacing: 1),
             ),
             content: SizedBox(
-              width: MediaQuery.of(context).size.width * 0.85, // Delimita un ancho elegante
+              width: MediaQuery.of(context).size.width * 0.85, 
               child: SingleChildScrollView(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     const SizedBox(height: 5),
-                    // ================= DROPDOWN 1: ESTACIONES =================
                     FutureBuilder<List<dynamic>>(
                       future: estaciones.isEmpty ? ApiService.getEstaciones() : Future.value(estaciones),
                       builder: (context, snapshot) {
@@ -142,7 +336,7 @@ class _ActivoDetalleScreenState extends State<ActivoDetalleScreen> {
 
                         return DropdownButtonFormField<int>(
                           initialValue: estacionSeleccionadaId,
-                          isExpanded: true, // Evita desbordes horizontales de texto largo
+                          isExpanded: true, 
                           decoration: const InputDecoration(
                             labelText: "Estación Destino",
                             prefixIcon: Icon(Icons.business),
@@ -155,7 +349,6 @@ class _ActivoDetalleScreenState extends State<ActivoDetalleScreen> {
                           onChanged: (value) async {
                             if (value == estacionSeleccionadaId) return;
                             
-                            // Reseteamos estados dependientes
                             setDialogState(() {
                               estacionSeleccionadaId = value;
                               ubicacionId = null;
@@ -178,7 +371,6 @@ class _ActivoDetalleScreenState extends State<ActivoDetalleScreen> {
                     ),
                     const SizedBox(height: 20),
 
-                    // ================= DROPDOWN 2: UBICACIONES =================
                     if (cargandoUbicaciones)
                       const Padding(
                         padding: EdgeInsets.symmetric(vertical: 15),
@@ -188,37 +380,21 @@ class _ActivoDetalleScreenState extends State<ActivoDetalleScreen> {
                       DropdownButtonFormField<int>(
                         initialValue: ubicacionId,
                         isExpanded: true,
-                        // Estilo adaptativo para el texto que SE SELECCIONA dentro del botón
-                        style: theme.textTheme.bodyLarge?.copyWith(
-                          fontSize: 13, // Un punto más pequeño para asegurar que quepa
-                          overflow: TextOverflow.ellipsis,
-                        ),
                         onChanged: estacionSeleccionadaId == null 
                             ? null 
                             : (value) => setDialogState(() => ubicacionId = value),
-                        
-                        // TEXTO RESPONSIVE CUANDO ESTÁ VACÍO
                         hint: Text(
                           estacionSeleccionadaId == null 
                               ? "Selecciona una estación primero" 
                               : "Ubicación exacta destino",
-                          style: const TextStyle(fontSize: 13), // Texto del contenido adaptado
+                          style: const TextStyle(fontSize: 13), 
                           overflow: TextOverflow.ellipsis,
                         ),
-
                         decoration: InputDecoration(
-                          // Reducimos el tamaño del label flotante (el que se va arriba al seleccionar)
-                          labelStyle: const TextStyle(fontSize: 12), 
-                          floatingLabelBehavior: FloatingLabelBehavior.auto,
                           labelText: estacionSeleccionadaId == null 
                               ? "Estación requerida" 
-                              : "Ubicación Destino", // Nombre más corto e intuitivo para el label flotante
+                              : "Ubicación Destino", 
                           prefixIcon: const Icon(Icons.location_on, size: 20),
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14), // Más aire interno
-                          disabledBorder: OutlineInputBorder(
-                            borderRadius: const BorderRadius.all(Radius.circular(12)),
-                            borderSide: BorderSide(color: Colors.grey.withValues(alpha: 0.3)),
-                          ),
                           border: const OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(12))),
                         ),
                         items: ubicaciones.isEmpty && estacionSeleccionadaId != null
@@ -230,19 +406,14 @@ class _ActivoDetalleScreenState extends State<ActivoDetalleScreen> {
                               ]
                             : ubicaciones.map((u) => DropdownMenuItem<int>(
                                 value: u['id'],
-                                child: Text(
-                                  u['nombre'].toString().toUpperCase(), 
-                                  style: const TextStyle(fontSize: 13), // Texto de las opciones desplegadas
-                                  overflow: TextOverflow.ellipsis,
-                                ),
+                                child: Text(u['nombre'].toString().toUpperCase(), style: const TextStyle(fontSize: 13), overflow: TextOverflow.ellipsis),
                               )).toList(),
                       ),
                     const SizedBox(height: 20),
 
-                    // ================= CAMPO DE TEXTO: MOTIVO =================
                     TextField(
                       controller: motivoController,
-                      maxLines: 2, // Permite mayor comodidad de escritura
+                      maxLines: 2, 
                       decoration: const InputDecoration(
                         labelText: "Motivo del traslado",
                         prefixIcon: Icon(Icons.edit_note),
@@ -264,7 +435,7 @@ class _ActivoDetalleScreenState extends State<ActivoDetalleScreen> {
                   padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                 ),
                 onPressed: (ubicacionId == null) 
-                    ? null // Deshabilita el botón si no se completó la ubicación jerárquica
+                    ? null 
                     : () async {
                         bool ok = await ApiService.registrarMovimiento(
                           widget.activoId,
@@ -282,13 +453,6 @@ class _ActivoDetalleScreenState extends State<ActivoDetalleScreen> {
                             const SnackBar(
                               content: Text("Transferencia registrada con éxito"),
                               backgroundColor: Colors.green,
-                            ),
-                          );
-                        } else {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text("Error al registrar la transferencia"),
-                              backgroundColor: Colors.red,
                             ),
                           );
                         }
@@ -385,7 +549,6 @@ class _ActivoDetalleScreenState extends State<ActivoDetalleScreen> {
     final theme = Theme.of(context);
     final Color colorEstado = _getEstadoColor(data['estado']);
     
-    // Lógica para detectar si la revisión está vencida
     bool isVencido = false;
     String fechaRevision = data['fecha_proxima_verificacion'] ?? "No programada";
     
@@ -409,7 +572,21 @@ class _ActivoDetalleScreenState extends State<ActivoDetalleScreen> {
       ),
       child: Column(
         children: [
-          _infoRow(Icons.fingerprint, "IDENTIFICADOR", "#${data['id']}", null),
+          InkWell(
+            onTap: () => _mostrarModalQR(data, context),
+            borderRadius: BorderRadius.circular(12),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 6.0, horizontal: 4.0),
+              child: _infoRow(
+                Icons.qr_code_2, 
+                "CÓDIGO DE CONTROL (PULSA PARA VER QR)", 
+                (data['codigo_qr'] ?? "VER QR").toString(), 
+                theme.colorScheme.primary
+              ),
+            ),
+          ),
+          Divider(height: 30, color: theme.colorScheme.onSurface.withValues(alpha: 0.05)),
+          _infoRow(Icons.fingerprint, "IDENTIFICADOR INTERNO", "#${data['id']}", null),
           Divider(height: 30, color: theme.colorScheme.onSurface.withValues(alpha: 0.05)),
           _infoRow(Icons.location_on_outlined, "UBICACIÓN ACTUAL", (data['ubicacion_nombre'] ?? "N/A").toString().toUpperCase(), null),
           Divider(height: 30, color: theme.colorScheme.onSurface.withValues(alpha: 0.05)),
@@ -428,17 +605,6 @@ class _ActivoDetalleScreenState extends State<ActivoDetalleScreen> {
     );
   }
 
-  IconData _getMovimientoIcon(String tipo) {
-    switch (tipo.toUpperCase()) {
-      case 'OPERATIVO': return Icons.check_circle_outline;
-      case 'DISPONIBLE': return Icons.inventory_2_outlined;
-      case 'REPARACIÓN': return Icons.build_circle_outlined;
-      case 'TRASLADO': return Icons.local_shipping_outlined;
-      case 'BAJA': return Icons.delete_sweep_outlined;
-      default: return Icons.history;
-    }
-  }
-
   Widget _buildMovimientosList() {
     return FutureBuilder<List<dynamic>>(
       future: ApiService.getMovimientosActivo(widget.activoId),
@@ -455,10 +621,13 @@ class _ActivoDetalleScreenState extends State<ActivoDetalleScreen> {
             final mov = movimientos[index];
             final color = _getEstadoColor(mov['tipo']);
             return ListTile(
-              leading: Icon(_getMovimientoIcon(mov['tipo']), color: color),
+              leading: Icon(_getEstadoIcon(mov['tipo']), color: color),
               title: Text("${mov['ubicacion_origen_nombre'] ?? 'Origen'} → ${mov['ubicacion_destino_nombre'] ?? 'Destino'}"),
               subtitle: Text(mov['fecha'] ?? ''),
-              trailing: Text(mov['tipo'], style: TextStyle(color: color, fontSize: 10, fontWeight: FontWeight.bold)),
+              trailing: Text(
+                mov['tipo'].toString().toUpperCase(), 
+                style: TextStyle(color: color, fontSize: 10, fontWeight: FontWeight.bold)
+              ),
             );
           },
         );
@@ -476,8 +645,8 @@ class _ActivoDetalleScreenState extends State<ActivoDetalleScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              Text(value, style: TextStyle(color: color ?? theme.colorScheme.onSurface, fontWeight: FontWeight.bold, fontSize: 14)),
               Text(label, style: TextStyle(color: theme.colorScheme.onSurface.withValues(alpha: 0.4), fontSize: 9)),
-              Text(value, style: TextStyle(color: color ?? theme.colorScheme.onSurface, fontWeight: FontWeight.bold, fontSize: 15)),
             ],
           ),
         ),

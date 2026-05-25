@@ -1,99 +1,74 @@
-# Bitácora de Desarrollo – TrackIt
+# 📝 Bitácora de Desarrollo — TrackIt
 
-## 2026-01-03
+Historial cronológico del diseño, desarrollo e implementación del ecosistema **TrackIt** (Backend Django + App Móvil Flutter).
 
-* Creación del repositorio TrackIt en GitHub.
-* Primer commit con el archivo README.md.
-* Definición inicial del proyecto y su objetivo general.
+---
 
-## 2026-01-03
+## 📅 Enero 2026
 
-* Creación de la carpeta backend como base del desarrollo técnico.
-* Redacción de la descripción del proyecto.
-* Revisión y actualización de la documentación del proyecto.
-* Decisión de utilizar Flutter para el desarrollo de la aplicación móvil.
+### 🛠️ 2026-01-03 — Inicialización del Proyecto y Arquitectura
+* **[Repo]** Creación del repositorio oficial `TrackIt` en GitHub e inclusión del archivo base `README.md`.
+* **[Estrategia]** Definición de los objetivos generales del proyecto y selección del stack tecnológico: **Django REST Framework** para el backend y **Flutter** para la aplicación móvil.
+* **[Backend]** Creación del directorio base de desarrollo para el backend.
+* **[Diseño]** Modelado inicial del esquema de datos, identificando las entidades principales (Estaciones, Ubicaciones, Activos, Movimientos) y sus respectivas relaciones de negocio.
 
-## 2026-01-03
+### 🔌 2026-01-09 — Configuración de la API REST Base
+* **[Backend]** Creación y registro de la aplicación interna `assets` en la configuración de Django.
+* **[API]** Exposición de los endpoints REST iniciales para la gestión de activos.
+* **[API]** Ampliación de las rutas para dar soporte a las entidades de ubicaciones y movimientos.
+* **[Fix]** Corrección de errores de enrutamiento en la aplicación `assets` y validación de respuestas JSON de la API.
+* **[Seguridad]** Configuración de políticas CORS en el backend para habilitar de forma segura el consumo de datos desde la app móvil en Flutter.
 
-* Definición del modelo de datos del sistema TrackIt.
-* Identificación de entidades principales y sus relaciones.
+### 🗄️ 2026-01-13 — Persistencia de Datos y Multi-Estación
+* **[DB]** Instalación, configuración y conexión de **PostgreSQL** como motor de base de datos principal de Django.
+* **[DB]** Creación y ejecución de las migraciones iniciales para reflejar el modelo de datos en PostgreSQL.
+* **[Backend]** Desarrollo de serializers en Django REST Framework para asegurar un correcto intercambio de datos JSON.
+* **[Backend]** Modificación estructural de la lógica de base de datos para segmentar y gestionar de manera independiente los activos distribuidos entre **3 estaciones de ITV**.
+* **[API]** Habilitación provisional de acceso público a los endpoints mediante la desactivación temporal de la autenticación para agilizar pruebas locales.
 
-## 2026-01-09
+---
 
-* Creación de la aplicación assets en el backend Django.
-* Registro de la app assets en la configuración del proyecto.
+## 📅 Abril 2026
 
-## 2026-01-09
+### 📱 2026-04-01 — Maquetación de la App y Filtros del Servidor
+* **[App]** Inicio oficial del desarrollo de la interfaz móvil en Flutter.
+* **[App]** Implementación del sistema de navegación funcional entre la pantalla de Estaciones y sus respectivas Ubicaciones internas.
+* **[App]** Refactorización y centralización de peticiones HTTP mediante la creación de la clase `ApiService`.
+* **[UI]** Optimización visual en las listas de la app mediante la implementación de `ListView.separated` y la aplicación de la paleta de colores del tema.
+* **[Backend]** Modificación y optimización del `ViewSet` de Ubicaciones para permitir el filtrado dinámico mediante el ID de la estación apoyado en `django-filter`.
 
-* Corrección de error en el archivo de rutas de la app assets.
-* Verificación del funcionamiento de la API REST de activos.
+### 🔍 2026-04-20 — Búsquedas Globales y Gestión de Estado
+* **[Backend]** Activación de `SearchFilter` en Django para dar soporte nativo a búsquedas de texto indexadas y parciales.
+* **[App]** Implementación de la barra de búsqueda global integrada en la interfaz mediante un `SearchDelegate`.
+* **[App]** Diseño e integración de filtros rápidos por estados en las pantallas de Ubicaciones y Activos mediante el uso de `ChoiceChips`.
+* **[App]** Desarrollo de la **Vista Global de Estación**, permitiendo a los usuarios inspeccionar y filtrar todos los activos pertenecientes a una misma estación sin necesidad de navegar ubicación por ubicación.
+* **[API]** Inclusión del campo `ubicacion_nombre` dentro de la carga útil del JSON para robustecer la trazabilidad visual de los activos en las listas generales.
 
-## 2026-01-09
+### 🎨 2026-04-23 — Refactorización de Red y Rediseño Visual
+* **[Backend]** Refactorización completa del método `getActivos` utilizando las utilidades `Uri` y `queryParameters`. Esta corrección eliminó caracteres residuales (como un `&` huérfano en las concatenaciones de texto plano) que provocaban que el servidor ignorase los filtros y devolviese datos erróneos.
+* **[UI]** Actualización integral de los estilos, fuentes y paleta de colores de la aplicación móvil.
+* **[App]** Implementación de una lupa en la barra superior para activar búsquedas rápidas de activos específicos por nombre.
 
-* Ampliación de la API REST para incluir ubicaciones y movimientos.
-* Exposición de endpoints REST para todas las entidades principales del sistema.
+### 🔐 2026-04-29 — Autenticación y Control de Sesión
+* **[Backend]** Implementación del módulo `authtoken` de Django para el aprovisionamiento de credenciales de inicio de sesión seguras.
+* **[App]** Integración de la lógica de Login guardando de forma persistente el token de usuario a través de `shared_preferences`.
+* **[App]** Desarrollo del proceso de cierre de sesión (`logout`) junto con un modal de confirmación UI interactivo.
+* **[App]** Modificación estructural de `main.dart` para evaluar de manera condicional la ruta de arranque (pantalla de autenticación frente a pantalla de inicio) según la presencia del token.
 
-## 2026-01-09
+---
 
-* Configuración de CORS para permitir el consumo de la API desde aplicación móvil.
-* Preparación del backend para su integración con Flutter.
+## 📅 Mayo 2026
 
-## 2026-01-13
+### 🚀 2026-05-11 — Pruebas en Hardware Real y Configuración de Red
+* **[Despliegue]** Migración exitosa del entorno de simulación local del emulador a la ejecución directa en hardware real (**Redmi Note 8 Pro**).
+* **[Red]** Configuración de un entorno de red local compartida mediante IP estática y apertura del servidor de desarrollo de Django apuntando al puerto `0.0.0.0`.
+* **[Seguridad]** Resolución de errores críticos `CSRF 403` en la comunicación móvil mediante la creación de una vista puente con el decorador `@csrf_exempt` y ajustes personalizados en los Middlewares del servidor.
+* **[Módulo]** Validación completa de todo el flujo de recuperación de contraseñas (Envío del token mediante SMTP seguro de Gmail ➡️ interfaz web de restablecimiento ➡️ cambio de credenciales en DB ➡️ login exitoso desde la App).
 
-* Instalación y configuración de PostgreSQL como base de datos del proyecto.
-* Conexión del backend Django con PostgreSQL.
-* Ejecución de migraciones iniciales.
-* Verificación del funcionamiento mediante el panel de administración.
-* Configuración inicial de la API REST con Django REST Framework.
-* Habilitación de autenticación por token.
-* Creación de los serializers para los modelos principales del sistema.
-* Preparación de la API REST para el intercambio de datos en formato JSON.
-* Desactivación temporal de la autenticación en la API REST para facilitar las pruebas
-* Verificación del acceso público a los endpoints.
-* Modificación de la DB para gestionar los activos entre las 3 estaciones de ITV.
-* Definir ubicaciones y activos distribuidos entre las 3 estaciones.
-
-## 2026-04-01
-
-* Implementación de la navegación entre pantallas en Flutter.
-* Creación de la vista de Ubicaciones filtrada por Estación.
-* Conexión del ApiService con el endpoint de ubicaciones.
-
-## 2026-04-01
-
-* [App Móvil] Inicio del desarrollo de la interfaz en Flutter.
-* [App Móvil] Implementación funcional de la navegación entre Estaciones y Ubicaciones internas.
-* [App Móvil] Refactorización del ApiService para centralizar las llamadas al backend (Django).
-* [App Móvil] Ajuste de UI: Se mejoró el diseño de las listas con ListView.separated y se aplicó tema de colores.
-* [Backend] Ajuste en el ViewSet de Ubicaciones para permitir filtrado por ID de estación.
-* [Backend] Verificado el filtrado de ubicaciones mediante django-filter.
-
-## 2026-04-20
-
-* [Backend] Optimización del backend (activación de SearchFilter) para soportar búsquedas parciales.
-* [App Móvil] 
-    - Implementación de búsqueda global (SearchDelegate).
-    - Sistema de filtros por estados en las pantallas de Ubicaciones y Activos (ChoiceChips).
-    - Vista glogal de estación: se ajustó el sistema para permitir ver todos los activos de una estación completa, filtrados por estado, sin necesidad de entrar ubicación por ubicación.
-    - Mejora de serialización: se añadió el campo 'ubicacion_nombre' en el API para mejorar la trazabilidad visual en las listas globales.
-
-## 2026-04-23
-
-* [Backend] Se refactorizó getActivos utilizando la clase Uri y queryParameters. Esto eliminó errores de sintaxis en la URL (como el & huérfano) que causaban que el backend ignorara los filtros y devolviera la lista completa.
-* [App Móvil] 
-    - Cambio de las UI y paleta de colores.
-    - Implementación de una lupa para buscar un activo por nombre.
-
-## 2026-04-29
-
-* [Backend] Implementación de authtoken para login seguro.
-* [App Móvil]
-    - Implementación de lógica de login, guardando el token mediante shared_preferences y método de limpieza de sesión (logout).
-    - UX/UI: modificación de main.dart para arranque condicional (login vs home). Añadido botón de cierre de sesión con diálogo de confirmación en pantalla principal.
-
-## 2026-05-11
-
-* Despliegue en hardware real: Migración exitosa del entorno de pruebas del emulador al dispositivo físico (Redmi Note 8 Pro).
-* Resolución de conectividad: Configuración de red local mediante IP estática y apertura del servidor Django en la red (0.0.0.0).
-* Seguridad API: Resolución del error CSRF 403 mediante la implementación de una vista puente (@csrf_exempt) y ajuste del Middleware para compatibilidad con aplicaciones móviles.
-* Flujo de recuperación de contraseña: Validación completa del ciclo de restablecimiento de contraseña (envío de email vía SMTP Gmail -> enlace web -> cambiko de clave -> login exitoso en App).
+### 🔔 2026-05-25 — Alertas Preventivas, Módulo de Impresión QR y Refactorización UI
+* **[Backend]** Análisis y detección de exclusiones en el endpoint `getActivosUrgentes()`, el cual discriminaba datos en el servidor debido al parámetro estricto `?vencidos=true`.
+* **[API]** Creación del nuevo método `ApiService.getActivosProximos()` para descargar el catálogo de activos y permitir una evaluación de fechas preventiva en el cliente.
+* **[App]** Optimización matemática en los filtros de fecha de Flutter. Se normalizaron las instancias de `DateTime` omitiendo las horas y milisegundos (`year, month, day`) para evitar desfases de zona horaria durante los cálculos.
+* **[QR]** **Implementación del Módulo de Impresión:** Se desarrolló la funcionalidad para la generación y maquetación de códigos QR optimizados para su impresión física, permitiendo el etiquetado e identificación en campo de cada activo.
+* **[UI]** Corrección e implementación del banner de **PREVENCIÓN (Ámbar)**, capturando perfectamente los activos que se encuentran dentro del rango crítico de 15 días previos a su vencimiento de calibración.
+* **[UI]** Rediseño estético total del banner de **URGENCIAS (Rojo)** adoptando un formato de **alto contraste** sólido (`0xFFFFF1F2`), bordes rígidos y tipografías oscuras profundas que igualan la jerarquía visual del banner preventivo y garantizan la máxima accesibilidad.

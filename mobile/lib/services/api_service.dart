@@ -6,7 +6,10 @@ import 'package:flutter/foundation.dart';
 import 'auth_service.dart';
 
 class ApiService {
-  static const String baseUrl = "http://192.168.50.100:8000/api"; // IP para emulador Android
+  static const String baseUrl = "http://10.0.2.2:8000/api"; // IP para emulador Android
+  
+  // VARIABLE: Para construir las rutas completas de las imágenes de Django de forma dinámica
+  static const String mediaUrl = "http://10.0.2.2:8000"; 
 
   // Función auxiliar para obtener cabeceras con Token
   static Future<Map<String, String>> _getHeaders() async {
@@ -137,7 +140,6 @@ class ApiService {
   }) async {
     var request = http.MultipartRequest('POST', Uri.parse("$baseUrl/activos/"));
     
-    // Inyectar Token en Multipart
     String? token = await AuthService.getToken();
     if (token != null) request.headers['Authorization'] = "Token $token";
 
@@ -185,7 +187,6 @@ class ApiService {
     try {
       var request = http.MultipartRequest('PATCH', Uri.parse('$baseUrl/activos/$id/'));
       
-      // Inyectar Token en Multipart
       String? token = await AuthService.getToken();
       if (token != null) request.headers['Authorization'] = "Token $token";
 
@@ -276,6 +277,26 @@ class ApiService {
       }
     } catch (e) {
       debugPrint("Error en getActivosUrgentes: $e");
+      return [];
+    }
+  }
+
+  // MÉTODO: Trae el listado completo de activos de la base de datos 
+  // para que Flutter pueda evaluar preventivamente cuáles vencen en los próximos 15 días.
+  static Future<List<dynamic>> getActivosProximos() async {
+    try {
+      final response = await http.get(
+        Uri.parse("$baseUrl/activos/"),
+        headers: await _getHeaders(),
+      );
+
+      if (response.statusCode == 200) {
+        return json.decode(response.body);
+      } else {
+        return [];
+      }
+    } catch (e) {
+      debugPrint("Error en getActivosProximos: $e");
       return [];
     }
   }

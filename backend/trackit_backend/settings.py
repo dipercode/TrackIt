@@ -161,3 +161,6 @@ EMAIL_HOST_PASSWORD = 'hwdy iwes wmmf ukup'  # La contraseña de 16 caracteres d
 DEFAULT_FROM_EMAIL = 'TrackIt App <dperezguillermo@gmail.com>'
 HOSTNAME = "192.168.50.100:8000"
 
+# CONFIGURACIÓN PARA ARCHIVOS MULTIMEDIA (CÓDIGOS QR)
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'

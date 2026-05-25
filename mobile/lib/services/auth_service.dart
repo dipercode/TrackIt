@@ -1,10 +1,11 @@
 import 'dart:convert';
+import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
 class AuthService {
   // La base URL ya incluye el /api
-  static const String baseUrl = "http://192.168.50.100:8000/api";
+  static const String baseUrl = "http://10.0.2.2:8000/api";
 
   // Iniciar sesión con el endpoint correcto de Django
   static Future<bool> login(String username, String password) async {
@@ -32,11 +33,11 @@ class AuthService {
         return true;
       } else {
         // Imprime el error en consola para debuguear si falla (ej. 400 Bad Request)
-        print("Error en login: ${response.statusCode} - ${response.body}");
+        debugPrint("Error en login: ${response.statusCode} - ${response.body}");
         return false;
       }
     } catch (e) {
-      print("Error de conexión: $e");
+      debugPrint("Error de conexión: $e");
       return false;
     }
   }

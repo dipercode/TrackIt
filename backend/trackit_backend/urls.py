@@ -21,6 +21,10 @@ from django.contrib.auth import views as auth_views
 from django.views.decorators.csrf import csrf_exempt
 from django.http import HttpResponse
 
+# 1. IMPORTACIONES AÑADIDAS PARA ARCHIVOS MULTIMEDIA
+from django.conf import settings
+from django.conf.urls.static import static
+
 @csrf_exempt
 def public_reset_password(request, *args, **kwargs):
     # Forzamos a que Django crea que no hay sesión ni necesidad de CSRF
@@ -39,3 +43,7 @@ urlpatterns = [
     path('api/reset/<uidb64>/<token>/', auth_views.PasswordResetConfirmView.as_view(), name='password_reset_confirm'),
     path('api/reset/done/', auth_views.PasswordResetCompleteView.as_view(), name='password_reset_complete'),
 ]
+
+# 2. BLOQUE AÑADIDO: Expone la carpeta media/ en desarrollo
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

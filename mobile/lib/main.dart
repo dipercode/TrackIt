@@ -4,7 +4,6 @@ import 'package:trackit_app/screens/estaciones_screen.dart';
 import 'package:trackit_app/services/auth_service.dart';
 
 void main() async {
-  // Asegura que los bindings de Flutter estén listos antes de usar SharedPreferences
   WidgetsFlutterBinding.ensureInitialized();
   
   // Verificamos si ya hay un token guardado

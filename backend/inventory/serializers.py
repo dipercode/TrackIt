@@ -27,6 +27,7 @@ class ActivoSerializer(serializers.ModelSerializer):
             'ubicacion', 
             'ubicacion_nombre',
             'codigo_qr',
+            'qr_imagen',
             'requiere_calibracion',
             'fecha_proxima_verificacion',
             'imagen',
@@ -34,10 +35,8 @@ class ActivoSerializer(serializers.ModelSerializer):
 
 
 class MovimientoSerializer(serializers.ModelSerializer):
-    # Traemos el nombre de las ubicaciones (relacionadas en el modelo Movimiento)
     ubicacion_origen_nombre = serializers.ReadOnlyField(source='ubicacion_origen.nombre')
     ubicacion_destino_nombre = serializers.ReadOnlyField(source='ubicacion_destino.nombre')
-    # Nombre del usuario que hizo el movimiento
     usuario_nombre = serializers.ReadOnlyField(source='usuario.username')
 
     class Meta:
