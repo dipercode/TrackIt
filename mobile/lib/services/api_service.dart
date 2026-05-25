@@ -6,10 +6,10 @@ import 'package:flutter/foundation.dart';
 import 'auth_service.dart';
 
 class ApiService {
-  static const String baseUrl = "http://10.0.2.2:8000/api"; // IP para emulador Android
+  static const String baseUrl = "http://192.168.50.100:8000/api"; // IP para emulador Android
   
   // VARIABLE: Para construir las rutas completas de las imágenes de Django de forma dinámica
-  static const String mediaUrl = "http://10.0.2.2:8000"; 
+  static const String mediaUrl = "http://192.168.50.100:8000"; 
 
   // Función auxiliar para obtener cabeceras con Token
   static Future<Map<String, String>> _getHeaders() async {
@@ -89,7 +89,6 @@ class ApiService {
         "ubicacion_destino": destinoId,
         "tipo": tipo,
         "motivo": motivo,
-        "usuario": 1, 
       }),
     );
     return response.statusCode == 201;

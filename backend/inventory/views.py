@@ -64,3 +64,14 @@ class MovimientoViewSet(viewsets.ModelViewSet):
     queryset = Movimiento.objects.all()
     serializer_class = MovimientoSerializer
     permission_classes = [permissions.AllowAny]
+
+    # MÉTODO: Captura el guardado y asocia de forma dinámica al usuario autenticado
+    def perform_create(self, serializer):
+        # Si la petición trae un usuario autenticado mediante Token, lo usamos automáticamente
+        if self.request.user and self.request.user.is_authenticated:
+            serializer.save(usuario=self.request.user)
+        else:
+            # Plan de respaldo por seguridad si falla el token (asigna el usuario ID=1 como fallback)
+            from django.contrib.auth.models import User
+            usuario_fallback = User.objects.filter(pk=1).first() or User.objects.first()
+            serializer.save(usuario=usuario_fallback)
